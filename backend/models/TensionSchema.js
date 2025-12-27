@@ -6,4 +6,4 @@ const tensionSchema = new mongoose.Schema({
     order: { type: Number, required: true , unique: true },
 })
 
-const Color = mongoose.model("Tension", tensionSchema);
+export default mongoose.model("Tension", tensionSchema);

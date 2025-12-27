@@ -6,4 +6,4 @@ const symmetrySchema = new mongoose.Schema({
     order: { type: Number, required: true , unique: true },
 })
 
-const Color = mongoose.model("Symmetry", symmetrySchema);
+export default mongoose.model("Symmetry", symmetrySchema);

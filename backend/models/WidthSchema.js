@@ -6,4 +6,4 @@ const widthSchema = new mongoose.Schema({
     order: { type: Number, required: true , unique: true },
 })
 
-const Color = mongoose.model("Width", widthSchema);
+export default mongoose.model("Width", widthSchema);

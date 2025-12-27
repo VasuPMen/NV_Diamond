@@ -6,4 +6,4 @@ const stoneSchema = new mongoose.Schema({
     order: { type: Number, required: true , unique: true },
 })
 
-const Color = mongoose.model("Stone", stoneSchema);
+export default mongoose.model("Stone", stoneSchema);
