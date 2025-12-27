@@ -6,4 +6,4 @@ const lengthSchema = new mongoose.Schema({
     order: { type: Number, required: true , unique: true },
 })
 
-const Color = mongoose.model("Length", lengthSchema);
+export default mongoose.model("Length", lengthSchema);

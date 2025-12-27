@@ -6,4 +6,4 @@ const polishSchema = new mongoose.Schema({
     order: { type: Number, required: true , unique: true },
 })
 
-const Color = mongoose.model("Polish", polishSchema);
+export default mongoose.model("Polish", polishSchema);

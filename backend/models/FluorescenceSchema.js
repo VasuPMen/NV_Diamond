@@ -6,4 +6,4 @@ const fluorescenceSchema = new mongoose.Schema({
     order: { type: Number, required: true , unique: true },
 })
 
-const Color = mongoose.model("Fluorescence", fluorescenceSchema);
+export default mongoose.model("Fluorescence", fluorescenceSchema);

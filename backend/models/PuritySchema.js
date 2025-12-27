@@ -6,4 +6,4 @@ const puritySchema = new mongoose.Schema({
     order: { type: Number, required: true , unique: true },
 })
 
-const Color = mongoose.model("Purity", puritySchema);
+export default mongoose.model("Purity", puritySchema);

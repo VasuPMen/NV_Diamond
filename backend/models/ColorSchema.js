@@ -6,4 +6,4 @@ const colorSchema = new mongoose.Schema({
     order: { type: Number, required: true , unique: true },
 })
 
-const Color = mongoose.model("Color", colorSchema);
+export default mongoose.model("Color", colorSchema);

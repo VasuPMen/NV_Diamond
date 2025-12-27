@@ -14,4 +14,4 @@ const processSchema = new mongoose.Schema({
     },
 })
 
-const Color = mongoose.model("Process", processSchema);
+export default mongoose.model("Process", processSchema);

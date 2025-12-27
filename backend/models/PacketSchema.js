@@ -79,4 +79,4 @@ const packetSchema = new mongoose.Schema({
   },
 });
 
-const Packet = mongoose.model("Packet", packetSchema);
+export default mongoose.model("Packet", packetSchema);

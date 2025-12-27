@@ -6,4 +6,4 @@ const cutSchema = new mongoose.Schema({
     order: { type: Number, required: true , unique: true },
 })
 
-const Color = mongoose.model("Cut", cutSchema);
+export default mongoose.model("Cut", cutSchema);

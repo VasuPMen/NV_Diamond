@@ -13,4 +13,4 @@ const shapeSchema = new mongoose.Schema({
     }
 })
 
-const Color = mongoose.model("Shape", shapeSchema);
+export default mongoose.model("Shape", shapeSchema);
