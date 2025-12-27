@@ -71,3 +71,5 @@ router.delete('/color/:id', async (req, res) => {
     });
   }
 });
+
+export default router;
