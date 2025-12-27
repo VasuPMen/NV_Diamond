@@ -2,7 +2,6 @@ import mongoose from "mongoose";
 
 const employeeSchema = new mongoose.Schema(
   {
-    // ================= Personal Details =================
     firstName: {
       type: String,
       required: true,
@@ -30,7 +29,6 @@ const employeeSchema = new mongoose.Schema(
       enum: ["Male", "Female", "Other"],
     },
 
-    // ================= Organization Details =================
     manager: {
       required: true,
       type: mongoose.Schema.Types.ObjectId,
@@ -45,7 +43,6 @@ const employeeSchema = new mongoose.Schema(
       },
     ],
 
-    // ================= Account Details =================
     bankName: {
       type: String,
     },
@@ -56,7 +53,6 @@ const employeeSchema = new mongoose.Schema(
       type: String,
     },
 
-    // ================= Address Details =================
     address: {
       required: true,
       permanentAddress: {
@@ -79,7 +75,6 @@ const employeeSchema = new mongoose.Schema(
       required: true,
     },
 
-    // ===== PER JEM =====
     perJemDetails: {
       processes: {
         type: [
@@ -95,7 +90,7 @@ const employeeSchema = new mongoose.Schema(
 
       perProcess: {
         type: Map,
-        of: Number, // processId -> price
+        of: Number,
         required: function () {
           return this.workingType === "perJem";
         },

@@ -14,6 +14,6 @@
     "cookie": "^1.1.1",
     "cors": "^2.8.5",
     "express": "^5.2.1",
-    "mongoos": "^0.0.1-security"
+    "mongoose": "^9.0.2"
   }
 }
