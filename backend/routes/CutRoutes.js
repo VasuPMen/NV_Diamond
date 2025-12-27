@@ -1,5 +1,5 @@
-import CutSchema from "../models/CutSchema.js";
-import router from "./Route.js";
+import CutSchema from '../models/CutSchema.js';
+import router from './Route.js';
 
 router.get("/cut", async (req, res) => {
   try {

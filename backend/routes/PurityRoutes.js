@@ -1,6 +1,6 @@
+import express from 'express';
+const router = express.Router();
 import PuritySchema from '../models/PuritySchema.js';
-import router from './Route.js';
-
 router.get('/purity', async (req, res) => {
   try {
     const Purity = await PuritySchema.find();

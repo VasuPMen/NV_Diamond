@@ -1,5 +1,6 @@
+import express from 'express';
+const router = express.Router();
 import HeightSchema from '../models/HeightSchema.js';
-import router from './Route.js';
 
 router.get('/height', async (req, res) => {
   try {

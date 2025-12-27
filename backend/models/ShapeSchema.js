@@ -9,7 +9,7 @@ const shapeSchema = new mongoose.Schema({
         required: true,
     },
     shortGroup:{
-        type: String,
+        type: String,   
         enum:["Round","Fancy"],
     }
 })
