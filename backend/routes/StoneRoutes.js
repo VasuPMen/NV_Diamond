@@ -1,5 +1,6 @@
+import express from 'express';
+const router = express.Router();
 import StoneSchema from '../models/StoneSchema.js';
-import router from './Route.js';
 
 router.get('/stone', async (req, res) => {
   try {

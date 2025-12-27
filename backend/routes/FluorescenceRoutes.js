@@ -12,6 +12,9 @@ router.get('/fluorescence', async (req, res) => {
 
 router.post('/fluorescence', async (req, res) => {
   try {
+    if (!req.body.name || !req.body.code || !req.body.order) {
+      return res.status(400).json({ message: "Missing fields" });
+    }
     const FluorescenceFind = await FluorescenceSchema.findOne({ name: req.body.name });
     if (FluorescenceFind) {
       return res.status(400).json({ message: 'Fluorescence already exists' });

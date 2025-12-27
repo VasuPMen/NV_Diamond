@@ -12,6 +12,9 @@ router.get('/length', async (req, res) => {
 
 router.post('/length', async (req, res) => {
   try {
+    if (!req.body.name || !req.body.code || !req.body.order) {
+      return res.status(400).json({ message: "Missing fields" });
+    }
     const LengthFind = await LengthSchema.findOne({ name: req.body.name });
     if (LengthFind) {
       return res.status(400).json({ message: 'Length already exists' });

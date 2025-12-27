@@ -1,5 +1,6 @@
+import express from 'express';
+const router = express.Router();
 import TensionSchema from '../models/TensionSchema.js';
-import router from './Route.js';
 
 router.get('/tension', async (req, res) => {
   try {
@@ -14,6 +15,9 @@ router.get('/tension', async (req, res) => {
 
 router.post('/tension', async (req, res) => {
   try {
+    if (!req.body.name || !req.body.code || !req.body.order) {
+      return res.status(400).json({ message: "Missing fields" });
+    }
     const TensionFind = await TensionSchema.findOne({ name: req.body.name });
     if (TensionFind) {
       return res.status(400).json({ message: 'Tension already exists' });
