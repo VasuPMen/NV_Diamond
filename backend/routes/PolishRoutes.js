@@ -1,6 +1,6 @@
+import express from 'express';
+const router = express.Router();
 import PolishSchema from '../models/PolishSchema.js';
-import router from './Route.js';
-
 router.get('/polish', async (req, res) => {
   try {
     const Polish = await PolishSchema.find();

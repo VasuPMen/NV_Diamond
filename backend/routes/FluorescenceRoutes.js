@@ -1,6 +1,6 @@
+import express from 'express';
+const router = express.Router();
 import FluorescenceSchema from '../models/FluorescenceSchema.js';
-import router from './Route.js';
-
 router.get('/fluorescence', async (req, res) => {
   try {
     const Fluorescence = await FluorescenceSchema.find();

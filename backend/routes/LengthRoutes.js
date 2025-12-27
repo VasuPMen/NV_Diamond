@@ -1,6 +1,6 @@
+import express from 'express';
+const router = express.Router();
 import LengthSchema from '../models/LengthSchema.js';
-import router from './Route.js';
-
 router.get('/length', async (req, res) => {
   try {
     const Length = await LengthSchema.find();

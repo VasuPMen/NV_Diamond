@@ -1,5 +1,6 @@
+import express from 'express';
+const router = express.Router();
 import ColorSchema from '../models/ColorSchema.js';
-import router from './Route.js';
 
 router.get('/color', async (req, res) => {
     try{
