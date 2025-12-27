@@ -103,12 +103,6 @@ const managerSchema = new mongoose.Schema(
         default: false,
       },
     },
-
-    typeOfManager : {
-      type: String,
-      enum: ["MyManager", "Jober"],
-    },
-
     referenceDetails: {
       name: {
         type: String,
@@ -120,6 +114,10 @@ const managerSchema = new mongoose.Schema(
         type: String,
       },
     },
+    department: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Department",
+    }
   },
   { timestamps: true }
 );
