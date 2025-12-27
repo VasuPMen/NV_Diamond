@@ -4,6 +4,7 @@ const packetSchema = new mongoose.Schema({
   packetNo: {
     type: String,
     required: true,
+    unique: true,
   },
   stockWeight: {
     type: Number,

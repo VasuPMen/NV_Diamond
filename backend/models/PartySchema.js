@@ -31,7 +31,8 @@ const partySchema = new mongoose.Schema(
         type:String
     },
     stoneType:{
-        enum:["Nature" , "HPHT" , "CVD"]
+      type:String,
+      enum:["Nature" , "HPHT" , "CVD"]
     },
   },
   { timestamps: true }

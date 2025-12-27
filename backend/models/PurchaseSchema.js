@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 
 const purchaseSchema = new mongoose.Schema({
     purchaseType: {
+        type: String,
         enum: ["roughPurchase", "rejectionPurchase"],
         required: true,
     },

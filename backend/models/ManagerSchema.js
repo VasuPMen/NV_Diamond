@@ -36,13 +36,6 @@ const managerSchema = new mongoose.Schema(
       },
     ],
 
-    employee : [
-        {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Employee",
-        }
-    ],
-
     bankName: {
       type: String,
     },
@@ -54,7 +47,6 @@ const managerSchema = new mongoose.Schema(
     },
 
     address: {
-      required: true,
       permanentAddress: {
         type: String,
       },
@@ -81,9 +73,12 @@ const managerSchema = new mongoose.Schema(
       },
     },
 
-    employeeName : {
-
-    },
+    employee :[
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Employee",
+      }
+    ],
 
     diamondExperience: {
       diamondKnowledge: {
