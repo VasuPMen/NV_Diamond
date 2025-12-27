@@ -50,7 +50,6 @@ const employeeSchema = new mongoose.Schema(
       type: String,
     },
     address: {
-      required: true,
       permanentAddress: {
         type: String,
       },

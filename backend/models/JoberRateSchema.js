@@ -23,9 +23,11 @@ const joberRateSchema = new mongoose.Schema(
             required: true,
         },
         rateType:{
+            type: String,
             enum : ["issue Weight" , "return Weight" , "polish Weight" , "Fixed piece" , "Weight loss"],
         },
         rateCount:{
+            type: String,
             enum : ["issue Weight" , "return Weight" , "polish Weight" ]
         },
         shape:[
