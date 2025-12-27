@@ -104,6 +104,11 @@ const managerSchema = new mongoose.Schema(
       },
     },
 
+    typeOfManager : {
+      type: String,
+      enum: ["MyManager", "Jober"],
+    },
+
     referenceDetails: {
       name: {
         type: String,
