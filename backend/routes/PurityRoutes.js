@@ -6,51 +6,76 @@ router.get('/purity', async (req, res) => {
     const Purity = await PuritySchema.find();
     res.status(200).json(Purity);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({
+      message: error.message + ' error from get PurityRoutes.js'
+    });
   }
 });
 
 router.post('/purity', async (req, res) => {
   try {
-    const find = await PuritySchema.findOne({ name: req.body.name });
-    if (find) {
+    const PurityFind = await PuritySchema.findOne({ name: req.body.name });
+    if (PurityFind) {
       return res.status(400).json({ message: 'Purity already exists' });
     }
 
-    const purity = new PuritySchema({
+    const Purity = new PuritySchema({
       name: req.body.name,
       code: req.body.code,
       order: req.body.order
     });
 
-    await purity.save();
+    await Purity.save();
 
     res.status(201).json({
       message: 'Purity added successfully',
-      purity
+      Purity
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({
+      message: error.message + ' error from add PurityRoutes.js'
+    });
   }
 });
 
 router.put('/purity/:id', async (req, res) => {
   try {
-    const Purity = await PuritySchema.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!Purity) return res.status(404).json({ message: 'Purity not found' });
-    res.status(200).json({ message: 'Purity updated successfully', Purity });
+    const Purity = await PuritySchema.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    );
+
+    if (!Purity) {
+      return res.status(404).json({ message: 'Purity not found' });
+    }
+
+    res.status(200).json({
+      message: 'Purity updated successfully',
+      Purity
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({
+      message: error.message + ' error from put PurityRoutes.js'
+    });
   }
 });
 
 router.delete('/purity/:id', async (req, res) => {
   try {
     const Purity = await PuritySchema.findByIdAndDelete(req.params.id);
-    if (!Purity) return res.status(404).json({ message: 'Purity not found' });
-    res.status(200).json({ message: 'Purity deleted successfully' });
+
+    if (!Purity) {
+      return res.status(404).json({ message: 'Purity not found' });
+    }
+
+    res.status(200).json({
+      message: 'Purity deleted successfully'
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({
+      message: error.message + ' error from delete PurityRoutes.js'
+    });
   }
 });
 
