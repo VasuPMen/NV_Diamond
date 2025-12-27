@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const employeeSchema = new mongoose.Schema(
+const managerSchema = new mongoose.Schema(
   {
     firstName: {
       type: String,
@@ -28,18 +28,21 @@ const employeeSchema = new mongoose.Schema(
       type: String,
       enum: ["Male", "Female", "Other"],
     },
-    manager: {
-      required: true,
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Manager",
-    },
+
     process: [
       {
-        required: true,
         type: mongoose.Schema.Types.ObjectId,
         ref: "Process",
       },
     ],
+
+    employee : [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Employee",
+        }
+    ],
+
     bankName: {
       type: String,
     },
@@ -49,6 +52,7 @@ const employeeSchema = new mongoose.Schema(
     accountNo: {
       type: String,
     },
+
     address: {
       required: true,
       permanentAddress: {
@@ -64,39 +68,23 @@ const employeeSchema = new mongoose.Schema(
         type: String,
       },
     },
+
     workingType: {
       type: String,
       enum: ["perJem", "FixedSalary"],
       required: true,
     },
-    perJemDetails: {
-      processes: {
-        type: [
-          {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Process",
-          },
-        ],
-        required: function () {
-          return this.workingType === "perJem";
-        },
-      },
-      perProcess: {
-        type: Map,
-        of: Number,
-        required: function () {
-          return this.workingType === "perJem";
-        },
-      },
-    },
+
     fixedSalary: {
       salary: {
         type: Number,
-        required: function () {
-          return this.workingType === "FixedSalary";
-        },
       },
     },
+
+    employeeName : {
+
+    },
+
     diamondExperience: {
       diamondKnowledge: {
         type: Boolean,
@@ -115,6 +103,7 @@ const employeeSchema = new mongoose.Schema(
         default: false,
       },
     },
+
     referenceDetails: {
       name: {
         type: String,
@@ -130,4 +119,4 @@ const employeeSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export default mongoose.model("Employee", employeeSchema);
+export default mongoose.model("Manager", managerSchema);
