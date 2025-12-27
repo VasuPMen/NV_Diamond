@@ -14,6 +14,9 @@ router.get('/purity', async (req, res) => {
 
 router.post('/purity', async (req, res) => {
   try {
+    if (!req.body.name || !req.body.code || !req.body.order) {
+      return res.status(400).json({ message: "Missing fields" });
+    }
     const PurityFind = await PuritySchema.findOne({ name: req.body.name });
     if (PurityFind) {
       return res.status(400).json({ message: 'Purity already exists' });

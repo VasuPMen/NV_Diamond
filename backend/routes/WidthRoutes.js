@@ -1,5 +1,6 @@
+import express from 'express';
+const router = express.Router();
 import WidthSchema from '../models/WidthSchema.js';
-import router from './Route.js';
 
 router.get('/width', async (req, res) => {
   try {
@@ -12,6 +13,9 @@ router.get('/width', async (req, res) => {
 
 router.post('/width', async (req, res) => {
   try {
+    if (!req.body.name || !req.body.code || !req.body.order) {
+      return res.status(400).json({ message: "Missing fields" });
+    }
     const WidthFind = await WidthSchema.findOne({ name: req.body.name });
     if (WidthFind) {
       return res.status(400).json({ message: 'Width already exists' });

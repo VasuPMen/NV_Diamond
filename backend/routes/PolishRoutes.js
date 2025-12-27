@@ -14,6 +14,9 @@ router.get('/polish', async (req, res) => {
 
 router.post('/polish', async (req, res) => {
   try {
+    if (!req.body.name || !req.body.code || !req.body.order) {
+      return res.status(400).json({ message: "Missing fields" });
+    }
     const PolishFind = await PolishSchema.findOne({ name: req.body.name });
     if (PolishFind) {
       return res.status(400).json({ message: 'Polish already exists' });

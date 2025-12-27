@@ -1,5 +1,6 @@
+import express from 'express';
+const router = express.Router();
 import ShapeSchema from '../models/ShapeSchema.js';
-import router from './Route.js';
 
 router.get('/shape', async (req, res) => {
   try {
@@ -14,6 +15,9 @@ router.get('/shape', async (req, res) => {
 
 router.post('/shape', async (req, res) => {
   try {
+    if (!req.body.name || !req.body.code || !req.body.order) {
+      return res.status(400).json({ message: "Missing fields" });
+    }
     const ShapeFind = await ShapeSchema.findOne({ name: req.body.name });
     if (ShapeFind) {
       return res.status(400).json({ message: 'Shape already exists' });

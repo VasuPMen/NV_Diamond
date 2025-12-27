@@ -1,5 +1,6 @@
+import express from 'express';
+const router = express.Router();
 import SymmetrySchema from '../models/SymmetrySchema.js';
-import router from './Route.js';
 
 router.get('/symmetry', async (req, res) => {
   try {
@@ -14,6 +15,9 @@ router.get('/symmetry', async (req, res) => {
 
 router.post('/symmetry', async (req, res) => {
   try {
+    if (!req.body.name || !req.body.code || !req.body.order) {
+      return res.status(400).json({ message: "Missing fields" });
+    }
     const SymmetryFind = await SymmetrySchema.findOne({ name: req.body.name });
     if (SymmetryFind) {
       return res.status(400).json({ message: 'Symmetry already exists' });

@@ -13,6 +13,9 @@ router.get('/height', async (req, res) => {
 
 router.post('/height', async (req, res) => {
   try {
+    if (!req.body.name || !req.body.code || !req.body.order) {
+      return res.status(400).json({ message: "Missing fields" });
+    }
     const HeightFind = await HeightSchema.findOne({ name: req.body.name });
     if (HeightFind) {
       return res.status(400).json({ message: 'Height already exists' });
