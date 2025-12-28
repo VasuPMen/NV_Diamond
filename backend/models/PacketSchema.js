@@ -83,6 +83,15 @@ const packetSchema = new mongoose.Schema({
     enum: ["Employee", "Manager"],
     required: true,
   },
+  pieces: {
+    type: Number,
+    required: true,
+  },
+  status : {
+    type: String,
+    enum: ["active", "hold"],
+    default: "hold",
+  },
 });
 
 export default mongoose.model("Packet", packetSchema);
