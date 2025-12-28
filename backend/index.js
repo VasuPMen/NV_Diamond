@@ -18,6 +18,10 @@ import symmetryRoutes from './routes/SymmetryRoutes.js';
 import tableRoutes from './routes/TableRoutes.js';
 import tensionRoutes from './routes/TensionRoutes.js';
 import widthRoutes from './routes/WidthRoutes.js';
+import purchaseRoutes from './routes/PurchaseRoutes.js';
+import managerRoutes from './routes/ManagerRoute.js';
+import partyRoutes from './routes/PartyRoutes.js';
+import departmentRoutes from './routes/DepartmentRoutes.js';
 
 // CONFIG
 dotenv.config();
@@ -45,6 +49,10 @@ app.use('/master', symmetryRoutes);
 app.use('/master', tableRoutes);
 app.use('/master', tensionRoutes);
 app.use('/master', widthRoutes);
+app.use('/master', managerRoutes);
+app.use('/master', partyRoutes);
+app.use('/master', departmentRoutes);
+app.use('/', purchaseRoutes);
 
 // TEST ROUTE
 app.get('/', (req, res) => {
