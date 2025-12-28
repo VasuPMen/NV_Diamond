@@ -7,112 +7,78 @@ const managerSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+
     lastName: {
       type: String,
       trim: true,
     },
+
     shortName: {
       type: String,
       unique: true,
+      sparse: true,
+      default: undefined,
+      trim: true,
     },
+
     emailId: {
       type: String,
       lowercase: true,
       trim: true,
     },
+
     mobileNo: {
-      required: true,
       type: String,
+      required: true,
     },
+
     gender: {
       type: String,
       enum: ["Male", "Female", "Other"],
-    },
-
-    process: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Process",
-      },
-    ],
-
-    bankName: {
-      type: String,
-    },
-    ifscCode: {
-      type: String,
-    },
-    accountNo: {
-      type: String,
-    },
-
-    address: {
-      permanentAddress: {
-        type: String,
-      },
-      pinCode: {
-        type: String,
-      },
-      city: {
-        type: String,
-      },
-      state: {
-        type: String,
-      },
-    },
-
-    workingType: {
-      type: String,
-      enum: ["perJem", "FixedSalary"],
       required: true,
     },
 
-    fixedSalary: {
-      salary: {
-        type: Number,
-      },
+    bankName: String,
+    ifscCode: String,
+    accountNo: String,
+
+    address: {
+      permanentAddress: String,
+      pinCode: String,
+      city: String,
+      state: String,
     },
 
-    employee :[
+    fixedSalary: {
+      salary: Number,
+    },
+
+    employee: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Employee",
-      }
+      },
     ],
 
     diamondExperience: {
-      diamondKnowledge: {
-        type: Boolean,
-        default: false,
-      },
-      laserKnowledge: {
-        type: Boolean,
-        default: false,
-      },
-      sarinKnowledge: {
-        type: Boolean,
-        default: false,
-      },
-      computerKnowledge: {
-        type: Boolean,
-        default: false,
-      },
+      diamondKnowledge: { type: Boolean, default: false },
+      laserKnowledge: { type: Boolean, default: false },
+      sarinKnowledge: { type: Boolean, default: false },
+      computerKnowledge: { type: Boolean, default: false },
     },
+
     referenceDetails: {
-      name: {
-        type: String,
-      },
-      mobileNo: {
-        type: String,
-      },
-      lastCompany: {
-        type: String,
-      },
+      name: String,
+      mobileNo: String,
+      lastCompany: String,
     },
-    department: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Department",
-    }
+
+    department: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Department",
+      },
+    ],
   },
   { timestamps: true }
 );
