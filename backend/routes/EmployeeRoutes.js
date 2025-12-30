@@ -1,10 +1,15 @@
 import express from "express";
 import EmployeeSchema from "../models/EmployeeSchema.js";
+import mongoose from "mongoose";
+import User from "../models/User.js";
 
 const router = express.Router();
 
 /* -------------------- CREATE EMPLOYEE -------------------- */
 router.post("/employees", async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
     let {
       firstName,
@@ -30,74 +35,41 @@ router.post("/employees", async (req, res) => {
     firstName = firstName?.trim();
     lastName = lastName?.trim();
     shortName = shortName?.trim() || undefined;
-    emailId = emailId?.trim().toLowerCase() || undefined;
+    emailId = emailId?.trim().toLowerCase();
     mobileNo = mobileNo?.trim();
-    bankName = bankName?.trim() || undefined;
-    ifscCode = ifscCode?.trim() || undefined;
-    accountNo = accountNo?.trim() || undefined;
 
-    if (address) {
-      address = {
-        permanentAddress: address.permanentAddress?.trim(),
-        pinCode: address.pinCode?.trim(),
-        city: address.city?.trim(),
-        state: address.state?.trim(),
-      };
-    }
-
-    if (referenceDetails) {
-      referenceDetails = {
-        name: referenceDetails.name?.trim(),
-        mobileNo: referenceDetails.mobileNo?.trim(),
-        lastCompany: referenceDetails.lastCompany?.trim(),
-      };
-    }
-
-    /* ---------- REQUIRED CHECK ---------- */
-    if (!firstName || !mobileNo || !manager || !workingType) {
+    if (!firstName || !mobileNo || !manager || !workingType || !emailId) {
       return res.status(400).json({ message: "Required fields missing" });
     }
 
-    /* ---------- DUPLICATE EMAIL CHECK ---------- */
-    if (emailId) {
-      const exists = await EmployeeSchema.findOne({ emailId });
-      if (exists) {
-        return res.status(400).json({ message: "Employee already exists" });
-      }
+    /* ---------- USER DUPLICATE CHECK ---------- */
+    const userExists = await User.findOne({ email: emailId }).session(session);
+    if (userExists) {
+      return res.status(400).json({ message: "User already exists" });
     }
 
     /* ---------- WORKING TYPE VALIDATION ---------- */
-    if (workingType === "perJem") {
-      if (
-        !perJemDetails?.processes?.length ||
-        !perJemDetails?.perProcess
-      ) {
-        return res
-          .status(400)
-          .json({ message: "PerJem details are required" });
-      }
+    if (workingType === "perJem" && (!perJemDetails?.processes?.length || !perJemDetails?.perProcess)) {
+      return res.status(400).json({ message: "PerJem details required" });
     }
 
-    if (workingType === "FixedSalary") {
-      if (!fixedSalary?.salary) {
-        return res
-          .status(400)
-          .json({ message: "Fixed salary is required" });
-      }
+    if (workingType === "FixedSalary" && !fixedSalary?.salary) {
+      return res.status(400).json({ message: "Fixed salary required" });
     }
 
-    const newEmployee = new EmployeeSchema({
+    /* ---------- CREATE EMPLOYEE ---------- */
+    const employee = new EmployeeSchema({
       firstName,
       lastName,
-      ...(shortName && { shortName }),
-      ...(emailId && { emailId }),
+      shortName,
+      emailId,
       mobileNo,
       gender,
       manager,
       process,
-      ...(bankName && { bankName }),
-      ...(ifscCode && { ifscCode }),
-      ...(accountNo && { accountNo }),
+      bankName,
+      ifscCode,
+      accountNo,
       address,
       workingType,
       ...(workingType === "perJem" && { perJemDetails }),
@@ -106,13 +78,30 @@ router.post("/employees", async (req, res) => {
       referenceDetails,
     });
 
-    const savedEmployee = await newEmployee.save();
-    res.status(201).json(savedEmployee);
+    const savedEmployee = await employee.save({ session });
+
+    /* ---------- CREATE USER ---------- */
+    await new User({
+      username: shortName || `${firstName} ${lastName || ""}`,
+      email: emailId,
+      role: "employee",
+    }).save({ session });
+
+    await session.commitTransaction();
+    session.endSession();
+
+    res.status(201).json({
+      message: "Employee & User created successfully",
+      employee: savedEmployee,
+    });
 
   } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
     res.status(400).json({ message: error.message });
   }
 });
+
 
 /* -------------------- GET ALL EMPLOYEES -------------------- */
 router.get("/employees", async (req, res) => {
@@ -130,80 +119,109 @@ router.get("/employees", async (req, res) => {
 
 /* -------------------- UPDATE EMPLOYEE -------------------- */
 router.put("/employees/:id", async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
     const body = req.body;
 
-    /* ---------- TRIMMING ---------- */
     if (body.firstName) body.firstName = body.firstName.trim();
     if (body.lastName) body.lastName = body.lastName.trim();
+    if (body.shortName !== undefined) body.shortName = body.shortName?.trim() || undefined;
+    if (body.emailId !== undefined) body.emailId = body.emailId?.trim().toLowerCase() || undefined;
 
-    if (body.shortName !== undefined) {
-      body.shortName = body.shortName?.trim() || undefined;
-    }
+    /* ---------- FIND EMPLOYEE ---------- */
+    const existingEmployee = await EmployeeSchema
+      .findById(req.params.id)
+      .session(session);
 
-    if (body.emailId !== undefined) {
-      body.emailId = body.emailId?.trim().toLowerCase() || undefined;
-    }
-
-    if (body.mobileNo) body.mobileNo = body.mobileNo.trim();
-    if (body.bankName !== undefined) body.bankName = body.bankName?.trim() || undefined;
-    if (body.ifscCode !== undefined) body.ifscCode = body.ifscCode?.trim() || undefined;
-    if (body.accountNo !== undefined) body.accountNo = body.accountNo?.trim() || undefined;
-
-    if (body.address) {
-      body.address = {
-        permanentAddress: body.address.permanentAddress?.trim(),
-        pinCode: body.address.pinCode?.trim(),
-        city: body.address.city?.trim(),
-        state: body.address.state?.trim(),
-      };
-    }
-
-    if (body.referenceDetails) {
-      body.referenceDetails = {
-        name: body.referenceDetails.name?.trim(),
-        mobileNo: body.referenceDetails.mobileNo?.trim(),
-        lastCompany: body.referenceDetails.lastCompany?.trim(),
-      };
-    }
-
-    /* ---------- WORKING TYPE CLEANUP ---------- */
-    if (body.workingType === "perJem") {
-      body.fixedSalary = undefined;
-    }
-
-    if (body.workingType === "FixedSalary") {
-      body.perJemDetails = undefined;
-    }
-
-    const updatedEmployee = await EmployeeSchema.findByIdAndUpdate(
-      req.params.id,
-      body,
-      { new: true, runValidators: true }
-    );
-
-    if (!updatedEmployee) {
+    if (!existingEmployee) {
       return res.status(404).json({ message: "Employee not found" });
     }
 
-    res.status(200).json(updatedEmployee);
+    /* ---------- EMAIL DUPLICATE CHECK ---------- */
+    if (body.emailId && body.emailId !== existingEmployee.emailId) {
+      const emailExists = await User.findOne({ email: body.emailId }).session(session);
+      if (emailExists) {
+        return res.status(400).json({ message: "Email already in use" });
+      }
+    }
+
+    /* ---------- WORKING TYPE CLEANUP ---------- */
+    if (body.workingType === "perJem") body.fixedSalary = undefined;
+    if (body.workingType === "FixedSalary") body.perJemDetails = undefined;
+
+    /* ---------- UPDATE EMPLOYEE ---------- */
+    const updatedEmployee = await EmployeeSchema.findByIdAndUpdate(
+      req.params.id,
+      body,
+      { new: true, runValidators: true, session }
+    );
+
+    /* ---------- UPDATE USER ---------- */
+    const username =
+      body.shortName ||
+      `${body.firstName || existingEmployee.firstName} ${body.lastName || existingEmployee.lastName || ""}`;
+
+    await User.findOneAndUpdate(
+      { email: existingEmployee.emailId },
+      {
+        ...(body.emailId && { email: body.emailId }),
+        username,
+      },
+      { session }
+    );
+
+    await session.commitTransaction();
+    session.endSession();
+
+    res.status(200).json({
+      message: "Employee & User updated successfully",
+      employee: updatedEmployee,
+    });
 
   } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
     res.status(400).json({ message: error.message });
   }
 });
 
+
 /* -------------------- DELETE EMPLOYEE -------------------- */
 router.delete("/employees/:id", async (req, res) => {
-  try {
-    const deletedEmployee = await EmployeeSchema.findByIdAndDelete(req.params.id);
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
-    if (!deletedEmployee) {
+  try {
+    const employee = await EmployeeSchema
+      .findById(req.params.id)
+      .session(session);
+
+    if (!employee) {
       return res.status(404).json({ message: "Employee not found" });
     }
 
-    res.status(200).json({ message: "Employee deleted successfully" });
+    await User.findOneAndDelete(
+      { email: employee.emailId },
+      { session }
+    );
+
+    await EmployeeSchema.findByIdAndDelete(
+      req.params.id,
+      { session }
+    );
+
+    await session.commitTransaction();
+    session.endSession();
+
+    res.status(200).json({
+      message: "Employee & User deleted successfully",
+    });
+
   } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
     res.status(500).json({ message: error.message });
   }
 });
