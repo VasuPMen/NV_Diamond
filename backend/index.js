@@ -20,7 +20,7 @@ import tensionRoutes from './routes/TensionRoutes.js';
 import widthRoutes from './routes/WidthRoutes.js';
 import purchaseRoutes from './routes/PurchaseRoutes.js';
 import packetRoutes from './routes/PacketRoutes.js';
-import managerRoutes from './routes/ManagerRoute.js';
+import managerRoutes from './routes/ManagerRoutes.js';
 import partyRoutes from './routes/PartyRoutes.js';
 import departmentRoutes from './routes/DepartmentRoutes.js';
 
