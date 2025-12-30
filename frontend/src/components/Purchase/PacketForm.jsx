@@ -125,25 +125,39 @@ const PacketForm = memo(({ purchase, packet = null, existingPacketsCount = 0, on
           fluorescencesRes,
           tablesRes,
         ] = await Promise.all([
-          masterAPI.shape.getAll(),
-          masterAPI.color.getAll(),
-          masterAPI.purity.getAll(),
-          masterAPI.cut.getAll(),
-          masterAPI.polish.getAll(),
-          masterAPI.symmetry.getAll(),
-          masterAPI.fluorescence.getAll(),
-          masterAPI.table.getAll(),
+          masterAPI.shape.getAll(1, 1000), // Fetch all data with large limit
+          masterAPI.color.getAll(1, 1000),
+          masterAPI.purity.getAll(1, 1000),
+          masterAPI.cut.getAll(1, 1000),
+          masterAPI.polish.getAll(1, 1000),
+          masterAPI.symmetry.getAll(1, 1000),
+          masterAPI.fluorescence.getAll(1, 1000),
+          masterAPI.table.getAll(1, 1000),
         ]);
 
+        // Handle paginated response structure
+        const getDataArray = (response) => {
+          if (!response || !response.data) return [];
+          // Check if response.data is paginated structure
+          if (response.data.data && Array.isArray(response.data.data)) {
+            return response.data.data;
+          }
+          // Check if response.data is direct array
+          if (Array.isArray(response.data)) {
+            return response.data;
+          }
+          return [];
+        };
+
         setMasterData({
-          shapes: shapesRes.data || [],
-          colors: colorsRes.data || [],
-          purities: puritiesRes.data || [],
-          cuts: cutsRes.data || [],
-          polishes: polishesRes.data || [],
-          symmetries: symmetriesRes.data || [],
-          fluorescences: fluorescencesRes.data || [],
-          tables: tablesRes.data || [],
+          shapes: getDataArray(shapesRes),
+          colors: getDataArray(colorsRes),
+          purities: getDataArray(puritiesRes),
+          cuts: getDataArray(cutsRes),
+          polishes: getDataArray(polishesRes),
+          symmetries: getDataArray(symmetriesRes),
+          fluorescences: getDataArray(fluorescencesRes),
+          tables: getDataArray(tablesRes),
         });
       } catch (err) {
         setError('Failed to load master data');
@@ -308,7 +322,10 @@ const PacketForm = memo(({ purchase, packet = null, existingPacketsCount = 0, on
   }, [packetRows, purchase, onSave]);
 
   const getSelectOptions = useCallback((type) => {
-    const data = masterData[type] || [];
+    const data = masterData[type];
+    if (!data || !Array.isArray(data)) {
+      return [];
+    }
     return data.map((item) => (
       <option key={item._id} value={item._id}>
         {item.name} ({item.code})
@@ -317,42 +334,75 @@ const PacketForm = memo(({ purchase, packet = null, existingPacketsCount = 0, on
   }, [masterData]);
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-lg mb-6">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-semibold">
-          {isEditing ? 'Edit Packet' : 'Add Packets to Purchase'}
-        </h3>
-        <button
-          onClick={onCancel}
-          className="text-gray-500 hover:text-gray-700 text-xl font-bold"
-        >
-          ✕
-        </button>
+    <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+      <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-4">
+        <div className="flex justify-between items-center">
+          <div>
+            <h3 className="text-xl font-bold">
+              {isEditing ? 'Edit Packet' : 'Add Packets to Purchase'}
+            </h3>
+            <p className="text-green-100 text-sm mt-1">
+              {isEditing ? 'Update packet details' : 'Create new packets for this purchase'}
+            </p>
+          </div>
+          <button
+            onClick={onCancel}
+            className="text-white hover:bg-white hover:bg-opacity-20 rounded-lg p-2 transition-colors"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
       </div>
+      
+      <div className="p-6">
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className="space-y-6">
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-            {error}
+          <div className="bg-red-50 border-l-4 border-red-500 text-red-700 px-6 py-4 rounded-lg shadow-sm">
+            <div className="flex items-center">
+              <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+              <span className="font-medium">{error}</span>
+            </div>
           </div>
         )}
 
         {!isEditing && (
-          <div className="mb-4 flex justify-between items-center">
-            <div className="text-sm text-gray-600">
-              <span className="font-medium">Purchase Pieces:</span> {totalPieces} | 
-              <span className="font-medium ml-2">Existing Packets:</span> {existingPacketsCount} | 
-              <span className="font-medium ml-2">Remaining:</span> {remainingPieces} | 
-              <span className="font-medium ml-2">New Packets:</span> {packetRows.length}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-4 text-sm">
+                <div>
+                  <span className="font-semibold text-gray-700">Purchase Pieces:</span>
+                  <span className="ml-2 text-gray-600">{totalPieces}</span>
+                </div>
+                <div>
+                  <span className="font-semibold text-gray-700">Existing Packets:</span>
+                  <span className="ml-2 text-gray-600">{existingPacketsCount}</span>
+                </div>
+                <div>
+                  <span className="font-semibold text-gray-700">Remaining:</span>
+                  <span className="ml-2 text-gray-600">{remainingPieces}</span>
+                </div>
+                <div>
+                  <span className="font-semibold text-gray-700">New Packets:</span>
+                  <span className="ml-2 text-gray-600">{packetRows.length}</span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={handleAddRow}
+                disabled={packetRows.length + existingPacketsCount >= totalPieces}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed font-medium flex items-center gap-2 shadow-sm hover:shadow-md"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                Add Row
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={handleAddRow}
-              disabled={packetRows.length + existingPacketsCount >= totalPieces}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
-            >
-              + Add Row
-            </button>
           </div>
         )}
 
@@ -603,27 +653,44 @@ const PacketForm = memo(({ purchase, packet = null, existingPacketsCount = 0, on
           </table>
         </div>
 
-        <div className="flex justify-end space-x-4 pt-4 mt-4">
+        <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
           <button
             type="button"
             onClick={onCancel}
             disabled={loading}
-            className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="px-6 py-3 border-2 border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={loading}
-            className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all duration-200 font-medium shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
-            {loading 
-              ? (isEditing ? 'Updating...' : 'Creating...') 
-              : (isEditing ? 'Update Packet' : `Create ${packetRows.length} Packet${packetRows.length > 1 ? 's' : ''}`)
-            }
+            {loading ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                {isEditing ? 'Updating...' : 'Creating...'}
+              </>
+            ) : isEditing ? (
+              <>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                Update Packet
+              </>
+            ) : (
+              <>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                Create {packetRows.length} Packet{packetRows.length > 1 ? 's' : ''}
+              </>
+            )}
           </button>
         </div>
       </form>
+      </div>
     </div>
   );
 });

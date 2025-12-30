@@ -228,7 +228,7 @@ const Master = memo(({ activeSection, onSectionChange }) => {
 
   // Show dashboard when no section is selected
   if (!selectedSection) {
-    return (
+  return (
       <div className="h-full overflow-y-auto bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
         <div className="max-w-7xl mx-auto px-6 py-8">
           {/* Header */}
@@ -239,9 +239,9 @@ const Master = memo(({ activeSection, onSectionChange }) => {
 
           {/* Cards Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-            {masterConfigs.map((config) => (
-              <button
-                key={config.key}
+          {masterConfigs.map((config) => (
+            <button
+              key={config.key}
                 onClick={() => handleCardClick(config.key)}
                 className="group relative bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-6 border border-gray-100 hover:border-transparent transform hover:-translate-y-2 overflow-hidden"
               >
@@ -254,15 +254,15 @@ const Master = memo(({ activeSection, onSectionChange }) => {
                     <span className="text-3xl">{config.icon}</span>
                   </div>
                   <h3 className="text-lg font-bold text-gray-800 group-hover:text-gray-900 transition-colors">
-                    {config.title}
+              {config.title}
                   </h3>
                   <div className="mt-2 w-12 h-1 bg-gradient-to-r from-transparent via-gray-300 to-transparent group-hover:via-blue-500 transition-all"></div>
                 </div>
 
                 {/* Hover Effect */}
                 <div className="absolute inset-0 border-2 border-transparent group-hover:border-blue-300 rounded-2xl transition-all duration-300"></div>
-              </button>
-            ))}
+            </button>
+          ))}
           </div>
         </div>
       </div>

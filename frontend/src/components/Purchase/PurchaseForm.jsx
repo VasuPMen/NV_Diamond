@@ -90,21 +90,26 @@ const PurchaseForm = memo(({ purchase, onSave, onCancel }) => {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-          {error}
+        <div className="bg-red-50 border-l-4 border-red-500 text-red-700 px-6 py-4 rounded-lg shadow-sm">
+          <div className="flex items-center">
+            <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+            </svg>
+            <span className="font-medium">{error}</span>
+          </div>
         </div>
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Purchase Type *
+        <div className="space-y-2">
+          <label className="block text-sm font-semibold text-gray-700">
+            Purchase Type <span className="text-red-500">*</span>
           </label>
           <select
             name="purchaseType"
             value={formData.purchaseType}
             onChange={handleChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white shadow-sm hover:border-gray-400"
             required
           >
             <option value="roughPurchase">Rough Purchase</option>
@@ -112,15 +117,15 @@ const PurchaseForm = memo(({ purchase, onSave, onCancel }) => {
           </select>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Select Party *
+        <div className="space-y-2">
+          <label className="block text-sm font-semibold text-gray-700">
+            Select Party <span className="text-red-500">*</span>
           </label>
           <select
             name="selectParty"
             value={formData.selectParty}
             onChange={handleChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white shadow-sm hover:border-gray-400"
             required
           >
             <option value="">Select Party</option>
@@ -132,29 +137,30 @@ const PurchaseForm = memo(({ purchase, onSave, onCancel }) => {
           </select>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Jangan No *
+        <div className="space-y-2">
+          <label className="block text-sm font-semibold text-gray-700">
+            Jangan No <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
             name="janganNo"
             value={formData.janganNo}
             onChange={handleChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white shadow-sm hover:border-gray-400"
+            placeholder="Enter jangan number"
             required
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Stone *
+        <div className="space-y-2">
+          <label className="block text-sm font-semibold text-gray-700">
+            Stone <span className="text-red-500">*</span>
           </label>
           <select
             name="stone"
             value={formData.stone}
             onChange={handleChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white shadow-sm hover:border-gray-400"
             required
           >
             <option value="">Select Stone</option>
@@ -166,9 +172,9 @@ const PurchaseForm = memo(({ purchase, onSave, onCancel }) => {
           </select>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Rate *
+        <div className="space-y-2">
+          <label className="block text-sm font-semibold text-gray-700">
+            Rate <span className="text-red-500">*</span>
           </label>
           <input
             type="number"
@@ -176,47 +182,49 @@ const PurchaseForm = memo(({ purchase, onSave, onCancel }) => {
             name="rate"
             value={formData.rate}
             onChange={handleChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white shadow-sm hover:border-gray-400"
+            placeholder="Enter rate"
             required
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Duration *
+        <div className="space-y-2">
+          <label className="block text-sm font-semibold text-gray-700">
+            Duration <span className="text-red-500">*</span>
           </label>
           <input
             type="number"
             name="duration"
             value={formData.duration}
             onChange={handleChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white shadow-sm hover:border-gray-400"
+            placeholder="Enter duration"
             required
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Pieces *
+        <div className="space-y-2">
+          <label className="block text-sm font-semibold text-gray-700">
+            Pieces <span className="text-red-500">*</span>
           </label>
           <input
             type="number"
             name="pieces"
             value={formData.pieces}
             onChange={handleChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="Number of packets to create"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white shadow-sm hover:border-gray-400"
+            placeholder="Enter number of pieces"
             required
             min="1"
           />
-          <p className="mt-1 text-xs text-gray-500">
+          <p className="text-xs text-gray-500 mt-1">
             Number of pieces for this purchase
           </p>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Total Weight *
+        <div className="space-y-2">
+          <label className="block text-sm font-semibold text-gray-700">
+            Total Weight <span className="text-red-500">*</span>
           </label>
           <input
             type="number"
@@ -224,26 +232,46 @@ const PurchaseForm = memo(({ purchase, onSave, onCancel }) => {
             name="totalWeight"
             value={formData.totalWeight}
             onChange={handleChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white shadow-sm hover:border-gray-400"
+            placeholder="Enter total weight"
             required
           />
         </div>
       </div>
 
-      <div className="flex justify-end space-x-4 pt-4">
+      <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
         <button
           type="button"
           onClick={onCancel}
-          className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+          className="px-6 py-3 border-2 border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-medium shadow-sm"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={loading}
-          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 font-medium shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
         >
-          {loading ? 'Saving...' : purchase?._id ? 'Update' : 'Create'}
+          {loading ? (
+            <>
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+              Saving...
+            </>
+          ) : purchase?._id ? (
+            <>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              Update
+            </>
+          ) : (
+            <>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              Create
+            </>
+          )}
         </button>
       </div>
     </form>
