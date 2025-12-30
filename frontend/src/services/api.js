@@ -124,6 +124,16 @@ export const masterAPI = {
     update: (id, data) => api.put(`/master/departments/${id}`, data),
     delete: (id) => api.delete(`/master/departments/${id}`),
   },
+  employee: {
+    getAll: (page = 1, limit = 10) => api.get('/master/employees', { params: { page, limit } }),
+    create: (data) => api.post('/master/employees', data),
+    update: (id, data) => api.put(`/master/employees/${id}`, data),
+    delete: (id) => api.delete(`/master/employees/${id}`),
+  },
+  process: {
+    getAll: () => api.get('/master/process'),
+    create: (data) => api.post('/master/process', data),
+  },
 };
 
 export default api;

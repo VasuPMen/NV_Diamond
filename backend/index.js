@@ -24,6 +24,9 @@ import managerRoutes from './routes/ManagerRoutes.js';
 import partyRoutes from './routes/PartyRoutes.js';
 import departmentRoutes from './routes/DepartmentRoutes.js';
 
+import employeeRoutes from './routes/EmployeeRoutes.js';
+import processRoutes from './routes/ProcessRoutes.js';
+
 // CONFIG
 dotenv.config();
 const app = express();
@@ -53,6 +56,8 @@ app.use('/master', widthRoutes);
 app.use('/master', managerRoutes);
 app.use('/master', partyRoutes);
 app.use('/master', departmentRoutes);
+app.use('/master', employeeRoutes);
+app.use('/master', processRoutes);
 app.use('/', purchaseRoutes);
 app.use('/', packetRoutes);
 

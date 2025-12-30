@@ -4,6 +4,7 @@ import MasterSection from './MasterSection';
 import ManagerSection from './ManagerSection';
 import PartySection from './PartySection';
 import DepartmentSection from './DepartmentSection';
+import EmployeeSection from './EmployeeSection';
 
 const Master = memo(({ activeSection, onSectionChange }) => {
   const [selectedSection, setSelectedSection] = useState(activeSection || null);
@@ -12,8 +13,15 @@ const Master = memo(({ activeSection, onSectionChange }) => {
   useEffect(() => {
     setSelectedSection(activeSection || null);
   }, [activeSection]);
-
   const masterConfigs = useMemo(() => [
+    {
+      key: 'employee',
+      title: 'Employee',
+      icon: '👥',
+      color: 'from-blue-600 to-indigo-600',
+      apiMethods: masterAPI.employee,
+      fields: [],
+    },
     {
       key: 'color',
       title: 'Color',
@@ -205,6 +213,41 @@ const Master = memo(({ activeSection, onSectionChange }) => {
       apiMethods: masterAPI.department,
       fields: [],
     },
+    {
+      key: 'process',
+      title: 'Process',
+      icon: '⚙️',
+      color: 'from-orange-600 to-amber-600',
+      apiMethods: masterAPI.process,
+      fields: [
+        { name: 'name', label: 'Name', type: 'text', required: true },
+        { name: 'code', label: 'Code', type: 'text', required: true },
+        { name: 'shortCode', label: 'Short Code', type: 'text', required: false },
+        {
+          name: 'labourType',
+          label: 'Labour Type',
+          type: 'select',
+          required: true,
+          options: [
+            { value: 'singleTime', label: 'Single Time' },
+            { value: 'multiTime', label: 'Multi Time' },
+          ],
+        },
+        {
+          name: 'transactionType',
+          label: 'Transaction Type',
+          type: 'select',
+          required: true,
+          options: [
+            { value: 'Normal', label: 'Normal' },
+            { value: 'HPHT', label: 'HPHT' },
+            { value: 'LAB', label: 'LAB' },
+            { value: 'FinalPolish', label: 'Final Polish' },
+            { value: 'MakableToPolish', label: 'Makable To Polish' },
+          ],
+        },
+      ],
+    },
   ], []);
 
   const activeConfig = useMemo(
@@ -246,11 +289,11 @@ const Master = memo(({ activeSection, onSectionChange }) => {
                 className="group relative bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-6 border border-gray-100 hover:border-transparent transform hover:-translate-y-2 overflow-hidden"
               >
                 {/* Gradient Background */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${config.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}></div>
+                <div className={`absolute inset - 0 bg - gradient - to - br ${ config.color } opacity - 0 group - hover: opacity - 10 transition - opacity duration - 300`}></div>
                 
                 {/* Content */}
                 <div className="relative z-10 flex flex-col items-center text-center">
-                  <div className={`w-16 h-16 rounded-full bg-gradient-to-br ${config.color} flex items-center justify-center mb-4 transform group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
+                  <div className={`w - 16 h - 16 rounded - full bg - gradient - to - br ${ config.color } flex items - center justify - center mb - 4 transform group - hover: scale - 110 transition - transform duration - 300 shadow - lg`}>
                     <span className="text-3xl">{config.icon}</span>
                   </div>
                   <h3 className="text-lg font-bold text-gray-800 group-hover:text-gray-900 transition-colors">
@@ -292,7 +335,9 @@ const Master = memo(({ activeSection, onSectionChange }) => {
       </div>
       
       <div className="max-w-7xl mx-auto p-8">
-        {activeConfig.key === 'manager' ? (
+        {activeConfig.key === 'employee' ? (
+          <EmployeeSection />
+        ) : activeConfig.key === 'manager' ? (
           <ManagerSection />
         ) : activeConfig.key === 'party' ? (
           <PartySection />
