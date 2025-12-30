@@ -1,10 +1,15 @@
 import express from "express";
 import ManagerSchema from "../models/ManagerSchema.js";
+import User from "../models/UserSchema.js";
+import mongoose from "mongoose";
 
 const router = express.Router();
 
 /* -------------------- CREATE MANAGER -------------------- */
 router.post("/managers", async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
     let {
       firstName,
@@ -26,64 +31,61 @@ router.post("/managers", async (req, res) => {
     /* ---------- TRIMMING ---------- */
     firstName = firstName?.trim();
     lastName = lastName?.trim();
-    shortName = shortName?.trim() || undefined; // Convert empty string to undefined for unique constraint
-    emailId = emailId?.trim().toLowerCase() || undefined;
+    shortName = shortName?.trim() || undefined;
+    emailId = emailId?.trim().toLowerCase();
     mobileNo = mobileNo?.trim();
-    bankName = bankName?.trim() || undefined;
-    ifscCode = ifscCode?.trim() || undefined;
-    accountNo = accountNo?.trim() || undefined;
 
-    if (address) {
-      address = {
-        permanentAddress: address.permanentAddress?.trim(),
-        pinCode: address.pinCode?.trim(),
-        city: address.city?.trim(),
-        state: address.state?.trim(),
-      };
-    }
-
-    if (referenceDetails) {
-      referenceDetails = {
-        name: referenceDetails.name?.trim(),
-        mobileNo: referenceDetails.mobileNo?.trim(),
-        lastCompany: referenceDetails.lastCompany?.trim(),
-      };
-    }
-
-    /* ---------- REQUIRED CHECK ---------- */
-    if (!firstName || !mobileNo || !gender) {
+    if (!firstName || !mobileNo || !gender || !emailId) {
       return res.status(400).json({ message: "Required fields missing" });
     }
 
-    /* ---------- DUPLICATE EMAIL CHECK ---------- */
-    if (emailId) {
-      const exists = await ManagerSchema.findOne({ emailId });
-      if (exists) {
-        return res.status(400).json({ message: "Manager already exists" });
-      }
+    /* ---------- CHECK USER DUPLICATE ---------- */
+    const userExists = await User.findOne({ email: emailId }).session(session);
+    if (userExists) {
+      return res.status(400).json({ message: "User already exists" });
     }
 
-    const newManager = new ManagerSchema({
+    /* ---------- CREATE MANAGER ---------- */
+    const manager = new ManagerSchema({
       firstName,
       lastName,
-      ...(shortName && { shortName }), // Only include if not undefined
-      ...(emailId && { emailId }), // Only include if not undefined
+      shortName,
+      emailId,
       mobileNo,
       gender,
-      ...(bankName && { bankName }),
-      ...(ifscCode && { ifscCode }),
-      ...(accountNo && { accountNo }),
+      bankName,
+      ifscCode,
+      accountNo,
       address,
       fixedSalary,
       diamondExperience,
       referenceDetails,
-      ...(department && { department })
+      department
     });
 
-    const savedManager = await newManager.save();
-    res.status(201).json(savedManager);
+    const savedManager = await manager.save({ session });
+
+    /* ---------- CREATE USER ---------- */
+    const user = new User({
+      username: shortName || `${firstName} ${lastName || ""}`,
+      email: emailId,
+      role: "manager"
+    });
+
+    await user.save({ session });
+
+    /* ---------- COMMIT ---------- */
+    await session.commitTransaction();
+    session.endSession();
+
+    res.status(201).json({
+      message: "Manager & User created successfully",
+      manager: savedManager
+    });
 
   } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
     res.status(400).json({ message: error.message });
   }
 });
@@ -100,70 +102,120 @@ router.get("/managers", async (req, res) => {
 
 /* -------------------- UPDATE MANAGER -------------------- */
 router.put("/managers/:id", async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
     const body = req.body;
 
     /* ---------- TRIMMING ---------- */
     if (body.firstName) body.firstName = body.firstName.trim();
     if (body.lastName) body.lastName = body.lastName.trim();
-    if (body.shortName !== undefined) {
-      body.shortName = body.shortName?.trim() || undefined; // Convert empty string to undefined
-    }
-    if (body.emailId !== undefined) {
+    if (body.shortName !== undefined)
+      body.shortName = body.shortName?.trim() || undefined;
+
+    if (body.emailId !== undefined)
       body.emailId = body.emailId?.trim().toLowerCase() || undefined;
-    }
+
     if (body.mobileNo) body.mobileNo = body.mobileNo.trim();
-    if (body.bankName !== undefined) body.bankName = body.bankName?.trim() || undefined;
-    if (body.ifscCode !== undefined) body.ifscCode = body.ifscCode?.trim() || undefined;
-    if (body.accountNo !== undefined) body.accountNo = body.accountNo?.trim() || undefined;
 
-    if (body.address) {
-      body.address = {
-        permanentAddress: body.address.permanentAddress?.trim(),
-        pinCode: body.address.pinCode?.trim(),
-        city: body.address.city?.trim(),
-        state: body.address.state?.trim(),
-      };
-    }
+    /* ---------- FETCH EXISTING MANAGER ---------- */
+    const existingManager = await ManagerSchema
+      .findById(req.params.id)
+      .session(session);
 
-    if (body.referenceDetails) {
-      body.referenceDetails = {
-        name: body.referenceDetails.name?.trim(),
-        mobileNo: body.referenceDetails.mobileNo?.trim(),
-        lastCompany: body.referenceDetails.lastCompany?.trim(),
-      };
-    }
-
-    const updatedManager = await ManagerSchema.findByIdAndUpdate(
-      req.params.id,
-      body,
-      { new: true, runValidators: true }
-    );
-
-    if (!updatedManager) {
+    if (!existingManager) {
       return res.status(404).json({ message: "Manager not found" });
     }
 
-    res.status(200).json(updatedManager);
+    /* ---------- EMAIL DUPLICATE CHECK ---------- */
+    if (
+      body.emailId &&
+      body.emailId !== existingManager.emailId
+    ) {
+      const emailExists = await User.findOne({ email: body.emailId }).session(session);
+      if (emailExists) {
+        return res.status(400).json({ message: "Email already in use" });
+      }
+    }
+
+    /* ---------- UPDATE MANAGER ---------- */
+    const updatedManager = await ManagerSchema.findByIdAndUpdate(
+      req.params.id,
+      body,
+      { new: true, runValidators: true, session }
+    );
+
+    /* ---------- UPDATE USER ---------- */
+    const updatedUsername =
+      body.shortName ||
+      `${body.firstName || existingManager.firstName} ${body.lastName || existingManager.lastName || ""}`;
+
+    await User.findOneAndUpdate(
+      { email: existingManager.emailId }, // find old email
+      {
+        ...(body.emailId && { email: body.emailId }),
+        username: updatedUsername
+      },
+      { session }
+    );
+
+    /* ---------- COMMIT ---------- */
+    await session.commitTransaction();
+    session.endSession();
+
+    res.status(200).json({
+      message: "Manager & User updated successfully",
+      manager: updatedManager
+    });
 
   } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
     res.status(400).json({ message: error.message });
   }
 });
 
+
 /* -------------------- DELETE MANAGER -------------------- */
 router.delete("/managers/:id", async (req, res) => {
-  try {
-    const deletedManager = await ManagerSchema.findByIdAndDelete(req.params.id);
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
-    if (!deletedManager) {
+  try {
+    /* ---------- FIND MANAGER ---------- */
+    const manager = await ManagerSchema
+      .findById(req.params.id)
+      .session(session);
+
+    if (!manager) {
       return res.status(404).json({ message: "Manager not found" });
     }
 
-    res.status(200).json({ message: "Manager deleted successfully" });
+    /* ---------- DELETE USER ---------- */
+    await User.findOneAndDelete(
+      { email: manager.emailId },
+      { session }
+    );
+
+    /* ---------- DELETE MANAGER ---------- */
+    await ManagerSchema.findByIdAndDelete(
+      req.params.id,
+      { session }
+    );
+
+    /* ---------- COMMIT ---------- */
+    await session.commitTransaction();
+    session.endSession();
+
+    res.status(200).json({
+      message: "Manager & User deleted successfully"
+    });
+
   } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
     res.status(500).json({ message: error.message });
   }
 });
 
-export default router;
