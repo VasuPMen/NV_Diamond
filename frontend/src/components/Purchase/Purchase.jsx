@@ -113,6 +113,12 @@ const Purchase = memo(() => {
     setEditingPacket(null);
   }, []);
 
+  const handleBack = useCallback(() => {
+    setSelectedPurchase(null);
+    setShowPacketForm(false);
+    setEditingPacket(null);
+  }, []);
+
   const handleEditPacket = useCallback((packet) => {
     setEditingPacket(packet);
     setShowPacketForm(true);
@@ -197,6 +203,18 @@ const Purchase = memo(() => {
         <div className="max-w-7xl mx-auto p-8">
           <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-8">
             <div className="mb-6 pb-4 border-b border-gray-200">
+              <div className="flex items-center gap-4 mb-4">
+                <button
+                  onClick={handleCancel}
+                  className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors font-medium"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                  </svg>
+                  <span>Back to Purchases</span>
+                </button>
+                <div className="h-6 w-px bg-gray-300"></div>
+              </div>
               <h2 className="text-2xl font-bold text-gray-800">
                 {editingPurchase ? 'Edit Purchase' : 'Create Purchase'}
               </h2>
@@ -221,24 +239,48 @@ const Purchase = memo(() => {
     <div className="h-full overflow-y-auto bg-gray-50">
       <div className="max-w-7xl mx-auto p-6">
         <div className="space-y-6">
-          {/* Header Section */}
-          <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6">
-            <div className="flex justify-between items-center">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-800">Purchase Management</h1>
-                <p className="text-sm text-gray-500 mt-1">Manage your purchase data</p>
+          {/* Header Section - only show when no purchase is selected */}
+          {!selectedPurchase && (
+            <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-800">Purchase Management</h1>
+                  <p className="text-sm text-gray-500 mt-1">Manage your purchase data</p>
+                </div>
+                <button
+                  onClick={handleCreate}
+                  className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-md hover:shadow-lg font-medium flex items-center gap-2"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  Create Purchase
+                </button>
               </div>
-              <button
-                onClick={handleCreate}
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-md hover:shadow-lg font-medium flex items-center gap-2"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-                Create Purchase
-              </button>
             </div>
-          </div>
+          )}
+
+          {/* Header Section - show when purchase is selected */}
+          {selectedPurchase && (
+            <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6">
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={handleBack}
+                  className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors font-medium"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                  </svg>
+                  <span>Back to Purchases</span>
+                </button>
+                <div className="h-6 w-px bg-gray-300"></div>
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-800">Purchase Management</h1>
+                  <p className="text-sm text-gray-500 mt-1">Manage your purchase data</p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Error Message */}
           {error && (
@@ -274,15 +316,17 @@ const Purchase = memo(() => {
             />
           )}
 
-          {/* Purchase List */}
-          <PurchaseList
-            fetchData={fetchPurchasesData}
-            selectedPurchaseId={selectedPurchase?._id}
-            onPurchaseClick={handlePurchaseClick}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            refreshKey={refreshKey}
-          />
+          {/* Purchase List - only show when no purchase is selected */}
+          {!selectedPurchase && (
+            <PurchaseList
+              fetchData={fetchPurchasesData}
+              selectedPurchaseId={selectedPurchase?._id}
+              onPurchaseClick={handlePurchaseClick}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              refreshKey={refreshKey}
+            />
+          )}
         </div>
       </div>
     </div>

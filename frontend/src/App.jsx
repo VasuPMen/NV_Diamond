@@ -1,34 +1,41 @@
-import React, { useState, useCallback, memo } from 'react';
+import React, { useState, useCallback, useEffect, memo } from 'react';
+import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import Purchase from './components/Purchase/Purchase';
 import Master from './components/Master/Master';
 
-const App = memo(() => {
-  const [activeTab, setActiveTab] = useState('purchase');
+const AppLayout = memo(() => {
   const [activeMasterSection, setActiveMasterSection] = useState(null);
+  const location = useLocation();
+  const navigate = useNavigate();
 
-  const handleTabChange = useCallback((tab) => {
-    setActiveTab(tab);
-    // Reset master section when switching away from master
-    if (tab !== 'master') {
+  const activeTab = location.pathname.startsWith('/master') ? 'master' : 'purchase';
+
+  useEffect(() => {
+    if (location.pathname.startsWith('/master')) {
+      const parts = location.pathname.split('/');
+      setActiveMasterSection(parts[2] || null);
+    } else {
       setActiveMasterSection(null);
     }
-  }, []);
+  }, [location.pathname]);
+
+  const handleTabChange = useCallback((tab) => {
+    if (tab === 'master') {
+      navigate('/master');
+    } else {
+      navigate('/purchase');
+    }
+  }, [navigate]);
 
   const handleMasterSectionChange = useCallback((section) => {
     setActiveMasterSection(section);
-  }, []);
-
-  const renderContent = useCallback(() => {
-    switch (activeTab) {
-      case 'purchase':
-        return <Purchase />;
-      case 'master':
-        return <Master activeSection={activeMasterSection} onSectionChange={handleMasterSectionChange} />;
-      default:
-        return <Purchase />;
+    if (section) {
+      navigate(`/master/${section}`);
+    } else {
+      navigate('/master');
     }
-  }, [activeTab, activeMasterSection, handleMasterSectionChange]);
+  }, [navigate]);
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -37,13 +44,35 @@ const App = memo(() => {
         onTabChange={handleTabChange}
       />
       <main className="flex-1 ml-64 overflow-y-auto">
-        {renderContent()}
+        <Routes>
+          <Route path="/" element={<Navigate to="/purchase" replace />} />
+          <Route path="/purchase" element={<Purchase />} />
+          <Route
+            path="/master"
+            element={
+              <Master
+                activeSection={activeMasterSection}
+                onSectionChange={handleMasterSectionChange}
+              />
+            }
+          />
+          <Route
+            path="/master/:sectionKey"
+            element={
+              <Master
+                activeSection={activeMasterSection}
+                onSectionChange={handleMasterSectionChange}
+              />
+            }
+          />
+          <Route path="*" element={<Navigate to="/purchase" replace />} />
+        </Routes>
       </main>
     </div>
   );
 });
 
-App.displayName = 'App';
+AppLayout.displayName = 'AppLayout';
 
-export default App;
+export default AppLayout;
 
