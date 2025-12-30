@@ -1,6 +1,6 @@
 import express from "express";
 import ManagerSchema from "../models/ManagerSchema.js";
-import User from "../models/User.js";
+import User from "../models/UserSchema.js";
 import mongoose from "mongoose";
 
 const router = express.Router();
