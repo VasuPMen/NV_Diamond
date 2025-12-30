@@ -13,22 +13,22 @@ const Sidebar = memo(({ activeTab, onTabChange }) => {
       </div>
       <nav className="flex-1 overflow-y-auto">
         <div className="p-4">
-          <ul className="space-y-2">
-            {menuItems.map((item) => (
-              <li key={item.id}>
-                <button
-                  onClick={() => onTabChange(item.id)}
+        <ul className="space-y-2">
+          {menuItems.map((item) => (
+            <li key={item.id}>
+              <button
+                onClick={() => onTabChange(item.id)}
                   className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-200 ${
-                    activeTab === item.id
+                  activeTab === item.id
                       ? 'bg-blue-600 text-white shadow-md'
-                      : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-                  }`}
-                >
-                  {item.label}
-                </button>
-              </li>
-            ))}
-          </ul>
+                    : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                }`}
+              >
+                {item.label}
+              </button>
+            </li>
+          ))}
+        </ul>
         </div>
       </nav>
     </div>

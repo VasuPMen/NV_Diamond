@@ -193,15 +193,24 @@ const Purchase = memo(() => {
 
   if (showForm) {
     return (
-      <div className="p-6">
-        <h2 className="text-2xl font-bold mb-6">
-          {editingPurchase ? 'Edit Purchase' : 'Create Purchase'}
-        </h2>
-        <PurchaseForm
-          purchase={editingPurchase}
-          onSave={handleSave}
-          onCancel={handleCancel}
-        />
+      <div className="h-full overflow-y-auto bg-gray-50">
+        <div className="max-w-7xl mx-auto p-8">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-8">
+            <div className="mb-6 pb-4 border-b border-gray-200">
+              <h2 className="text-2xl font-bold text-gray-800">
+                {editingPurchase ? 'Edit Purchase' : 'Create Purchase'}
+              </h2>
+              <p className="text-sm text-gray-500 mt-1">
+                {editingPurchase ? 'Update the purchase details below' : 'Fill in the information to create a new purchase'}
+              </p>
+            </div>
+            <PurchaseForm
+              purchase={editingPurchase}
+              onSave={handleSave}
+              onCancel={handleCancel}
+            />
+          </div>
+        </div>
       </div>
     );
   }
@@ -209,56 +218,72 @@ const Purchase = memo(() => {
   const purchasePackets = getPacketsForPurchase();
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Purchase Management</h2>
-        <button
-          onClick={handleCreate}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          Create Purchase
-        </button>
-      </div>
+    <div className="h-full overflow-y-auto bg-gray-50">
+      <div className="max-w-7xl mx-auto p-6">
+        <div className="space-y-6">
+          {/* Header Section */}
+          <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-800">Purchase Management</h1>
+                <p className="text-sm text-gray-500 mt-1">Manage your purchase data</p>
+              </div>
+              <button
+                onClick={handleCreate}
+                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-md hover:shadow-lg font-medium flex items-center gap-2"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                Create Purchase
+              </button>
+            </div>
+          </div>
 
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-          {error}
+          {/* Error Message */}
+          {error && (
+            <div className="bg-red-50 border-l-4 border-red-500 text-red-700 px-6 py-4 rounded-lg shadow-sm">
+              <div className="flex items-center">
+                <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+                <span className="font-medium">{error}</span>
+              </div>
+            </div>
+          )}
+
+          {/* Selected Purchase Detail */}
+          {selectedPurchase && (
+            <PurchaseDetail
+              purchase={selectedPurchase}
+              packets={purchasePackets}
+              onAddPackets={handleAddPackets}
+              onEditPacket={handleEditPacket}
+              onDeletePacket={handleDeletePacket}
+            />
+          )}
+
+          {/* Packet Form */}
+          {showPacketForm && selectedPurchase && (
+            <PacketForm
+              purchase={selectedPurchase}
+              packet={editingPacket}
+              existingPacketsCount={purchasePackets.length}
+              onSave={handlePacketSave}
+              onCancel={handlePacketCancel}
+            />
+          )}
+
+          {/* Purchase List */}
+          <PurchaseList
+            fetchData={fetchPurchasesData}
+            selectedPurchaseId={selectedPurchase?._id}
+            onPurchaseClick={handlePurchaseClick}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            refreshKey={refreshKey}
+          />
         </div>
-      )}
-
-      {/* Selected Purchase Detail */}
-      {selectedPurchase && (
-        <PurchaseDetail
-          purchase={selectedPurchase}
-          packets={purchasePackets}
-          onAddPackets={handleAddPackets}
-          onEditPacket={handleEditPacket}
-          onDeletePacket={handleDeletePacket}
-        />
-      )}
-
-      {/* Packet Form */}
-      {showPacketForm && selectedPurchase && (
-        <PacketForm
-          purchase={selectedPurchase}
-          packet={editingPacket}
-          existingPacketsCount={purchasePackets.length}
-          onSave={handlePacketSave}
-          onCancel={handlePacketCancel}
-        />
-      )}
-
-      {/* Purchase List */}
-      <div className="mt-6">
-        <h3 className="text-xl font-semibold mb-4">All Purchases</h3>
-        <PurchaseList
-          fetchData={fetchPurchasesData}
-          selectedPurchaseId={selectedPurchase?._id}
-          onPurchaseClick={handlePurchaseClick}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          refreshKey={refreshKey}
-        />
       </div>
     </div>
   );
