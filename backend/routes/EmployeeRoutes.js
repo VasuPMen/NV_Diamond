@@ -1,7 +1,7 @@
 import express from "express";
 import EmployeeSchema from "../models/EmployeeSchema.js";
 import mongoose from "mongoose";
-import User from "../models/User.js";
+import User from "../models/UserSchema.js";
 
 const router = express.Router();
 

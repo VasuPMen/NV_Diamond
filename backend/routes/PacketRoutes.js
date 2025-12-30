@@ -43,8 +43,8 @@ router.post("/packet", async (req, res) => {
       color,
       shape,
       pieces,
-      currentOwner,
       status,
+      currentOwner,
     } = req.body;
 
     if (
