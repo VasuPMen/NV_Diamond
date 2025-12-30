@@ -6,14 +6,13 @@ const TransactionSchema = new mongoose.Schema({
         required: true,
         unique: true,
     },
-    PacketNo : {
+    PacketNo: {
         type: String,
         required: true,
     },
     Process: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Process",
-        required: true,
     },
     from: {
         type: mongoose.Schema.Types.ObjectId,

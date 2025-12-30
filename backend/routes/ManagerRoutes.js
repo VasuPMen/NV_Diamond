@@ -93,7 +93,33 @@ router.post("/managers", async (req, res) => {
 /* -------------------- GET ALL MANAGERS -------------------- */
 router.get("/managers", async (req, res) => {
   try {
-    const managers = await ManagerSchema.find().lean();
+    const managers = await ManagerSchema.aggregate([
+      {
+        $lookup: {
+          from: "users",
+          localField: "emailId",
+          foreignField: "email",
+          as: "userDetails"
+        }
+      },
+      {
+        $unwind: {
+          path: "$userDetails",
+          preserveNullAndEmptyArrays: true
+        }
+      },
+      {
+        $addFields: {
+          userId: "$userDetails._id",
+          username: "$userDetails.username"
+        }
+      },
+      {
+        $project: {
+          userDetails: 0
+        }
+      }
+    ]);
     res.status(200).json(managers);
   } catch (error) {
     res.status(500).json({ message: error.message });

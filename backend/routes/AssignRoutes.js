@@ -16,7 +16,14 @@ router.post("/assign-packet", async (req, res) => {
 });
 
 router.get("/assign/:packetNo", async (req, res) => {
-    const assign = await Assign.findOne({ PacketNo: req.params.packetNo }).populate("Transitions");
+    const assign = await Assign.findOne({ PacketNo: req.params.packetNo }).populate({
+        path: "Transitions",
+        populate: [
+            { path: "from", select: "username email" },
+            { path: "to", select: "username email" },
+            { path: "Process", select: "name" }
+        ]
+    });
     res.json(assign);
 });
 

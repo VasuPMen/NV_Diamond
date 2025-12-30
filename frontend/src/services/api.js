@@ -24,6 +24,7 @@ export const packetAPI = {
   create: (data) => api.post('/packet', data),
   update: (id, data) => api.put(`/packet/${id}`, data),
   delete: (id) => api.delete(`/packet/${id}`),
+  getByNo: (packetNo) => api.get(`/packet/no/${packetNo}`),
 };
 
 // Master Data APIs
@@ -134,6 +135,11 @@ export const masterAPI = {
     getAll: () => api.get('/master/process'),
     create: (data) => api.post('/master/process', data),
   },
+};
+
+export const assignAPI = {
+  assignPacket: (data) => api.post('/assign/assign-packet', data),
+  getHistory: (packetNo) => api.get(`/assign/assign/${packetNo}`),
 };
 
 export default api;

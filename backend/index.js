@@ -23,11 +23,11 @@ import packetRoutes from './routes/PacketRoutes.js';
 import managerRoutes from './routes/ManagerRoutes.js';
 import partyRoutes from './routes/PartyRoutes.js';
 import departmentRoutes from './routes/DepartmentRoutes.js';
+import authRoutes from './routes/AuthRoutes.js';
 import assignRoutes from './routes/AssignRoutes.js';
 import employeeRoutes from './routes/EmployeeRoutes.js';
 import processRoutes from './routes/ProcessRoutes.js';
 
-// CONFIG
 dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -56,6 +56,7 @@ app.use('/master', widthRoutes);
 app.use('/master', managerRoutes);
 app.use('/master', partyRoutes);
 app.use('/master', departmentRoutes);
+app.use('/auth', authRoutes);
 app.use('/master', employeeRoutes);
 app.use('/master', processRoutes);
 app.use('/assign', assignRoutes);
@@ -71,3 +72,4 @@ app.get('/', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
+// Force Restart

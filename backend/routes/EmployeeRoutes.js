@@ -106,10 +106,55 @@ router.post("/employees", async (req, res) => {
 /* -------------------- GET ALL EMPLOYEES -------------------- */
 router.get("/employees", async (req, res) => {
   try {
-    const employees = await EmployeeSchema.find()
-      .populate("manager")
-      .populate("process")
-      .lean();
+    const employees = await EmployeeSchema.aggregate([
+      {
+        $lookup: {
+          from: "users",
+          localField: "emailId",
+          foreignField: "email",
+          as: "userDetails"
+        }
+      },
+      {
+        $unwind: {
+          path: "$userDetails",
+          preserveNullAndEmptyArrays: true
+        }
+      },
+      {
+        $addFields: {
+          userId: "$userDetails._id",
+          username: "$userDetails.username"
+        }
+      },
+      {
+        $lookup: {
+          from: "managers",
+          localField: "manager",
+          foreignField: "_id",
+          as: "manager"
+        }
+      },
+      {
+        $unwind: {
+          path: "$manager",
+          preserveNullAndEmptyArrays: true
+        }
+      },
+      {
+        $lookup: {
+          from: "processes",
+          localField: "process",
+          foreignField: "_id",
+          as: "process"
+        }
+      },
+      {
+        $project: {
+          userDetails: 0
+        }
+      }
+    ]);
 
     res.status(200).json(employees);
   } catch (error) {

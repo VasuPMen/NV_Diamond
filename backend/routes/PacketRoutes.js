@@ -171,4 +171,27 @@ router.get("/packet/:id", async (req, res) => {
   }
 });
 
+router.get("/packet/no/:packetNo", async (req, res) => {
+  try {
+    const packet = await PacketSchema.findOne({ packetNo: req.params.packetNo })
+      .populate('shape')
+      .populate('color')
+      .populate('purity')
+      .populate('cut')
+      .populate('polish')
+      .populate('symmetry')
+      .populate('fluorescence')
+      .populate('table')
+      .populate('currentOwner');
+    if (!packet) {
+      return res.status(404).json({ message: "Packet not found" });
+    }
+    res.status(200).json(packet);
+  } catch (error) {
+    res.status(500).json({
+      message: error.message + " | error from GET Packet by No PacketRoutes.js",
+    });
+  }
+});
+
 export default router;
