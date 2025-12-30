@@ -5,6 +5,13 @@ const router = express.Router();
 
 router.post("/transactions", async (req, res) => {
   try {
+    const existingTransaction = await Transaction.findOne({ TransactionNo: req.body.TransactionNo });
+    if (existingTransaction) {
+      return res.status(400).json({ message: "Transaction with this TransactionNo already exists" });
+    }
+    if(!Process){
+        return res.status(400).json({ message: "Process field is required" });
+    }
     const transaction = new Transaction(req.body);
     await transaction.save();
     res.status(201).json({ message: "Transaction created successfully", transaction });
