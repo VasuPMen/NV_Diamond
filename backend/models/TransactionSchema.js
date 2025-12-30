@@ -16,11 +16,21 @@ const TransactionSchema = new mongoose.Schema({
     },
     from: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
+        refPath: 'fromModel',
+    },
+    fromModel: {
+        type: String,
+        required: true,
+        enum: ['Admin', 'Manager', 'Employee']
     },
     to: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
+        refPath: 'toModel',
+    },
+    toModel: {
+        type: String,
+        required: true,
+        enum: ['Admin', 'Manager', 'Employee']
     },
     prevWeight: {
         type: Number,

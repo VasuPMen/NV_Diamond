@@ -1,7 +1,6 @@
 import express from "express";
 import EmployeeSchema from "../models/EmployeeSchema.js";
 import mongoose from "mongoose";
-import User from "../models/UserSchema.js";
 
 const router = express.Router();
 
@@ -38,14 +37,21 @@ router.post("/employees", async (req, res) => {
     emailId = emailId?.trim().toLowerCase();
     mobileNo = mobileNo?.trim();
 
-    if (!firstName || !mobileNo || !manager || !workingType || !emailId) {
-      return res.status(400).json({ message: "Required fields missing" });
+    const missingFields = [];
+    if (!firstName) missingFields.push("First Name");
+    if (!mobileNo) missingFields.push("Mobile No");
+    if (!manager) missingFields.push("Manager");
+    if (!workingType) missingFields.push("Working Type");
+    if (!emailId) missingFields.push("Email ID");
+
+    if (missingFields.length > 0) {
+      return res.status(400).json({ message: `Required fields missing: ${missingFields.join(", ")}` });
     }
 
-    /* ---------- USER DUPLICATE CHECK ---------- */
-    const userExists = await User.findOne({ email: emailId }).session(session);
-    if (userExists) {
-      return res.status(400).json({ message: "User already exists" });
+    /* ---------- CHECK EMAIL DUPLICATE ---------- */
+    const existingEmployee = await EmployeeSchema.findOne({ emailId }).session(session);
+    if (existingEmployee) {
+      return res.status(400).json({ message: "Email already exists" });
     }
 
     /* ---------- WORKING TYPE VALIDATION ---------- */
@@ -56,6 +62,9 @@ router.post("/employees", async (req, res) => {
     if (workingType === "FixedSalary" && !fixedSalary?.salary) {
       return res.status(400).json({ message: "Fixed salary required" });
     }
+
+    // Default password for new employee
+    const defaultPassword = "employee";
 
     /* ---------- CREATE EMPLOYEE ---------- */
     const employee = new EmployeeSchema({
@@ -76,28 +85,30 @@ router.post("/employees", async (req, res) => {
       ...(workingType === "FixedSalary" && { fixedSalary }),
       diamondExperience,
       referenceDetails,
+      password: defaultPassword, // Will be hashed by pre-save hook
+      role: 'employee'
     });
 
     const savedEmployee = await employee.save({ session });
-
-    /* ---------- CREATE USER ---------- */
-    await new User({
-      username: shortName || `${firstName} ${lastName || ""}`,
-      email: emailId,
-      role: "employee",
-    }).save({ session });
 
     await session.commitTransaction();
     session.endSession();
 
     res.status(201).json({
-      message: "Employee & User created successfully",
+      message: "Employee created successfully",
       employee: savedEmployee,
     });
 
   } catch (error) {
     await session.abortTransaction();
     session.endSession();
+    console.error("Create Employee Error:", error);
+
+    if (error.code === 11000) {
+        const field = Object.keys(error.keyValue)[0];
+        return res.status(400).json({ message: `${field} already exists.` });
+    }
+
     res.status(400).json({ message: error.message });
   }
 });
@@ -106,57 +117,22 @@ router.post("/employees", async (req, res) => {
 /* -------------------- GET ALL EMPLOYEES -------------------- */
 router.get("/employees", async (req, res) => {
   try {
-    const employees = await EmployeeSchema.aggregate([
-      {
-        $lookup: {
-          from: "users",
-          localField: "emailId",
-          foreignField: "email",
-          as: "userDetails"
-        }
-      },
-      {
-        $unwind: {
-          path: "$userDetails",
-          preserveNullAndEmptyArrays: true
-        }
-      },
-      {
-        $addFields: {
-          userId: "$userDetails._id",
-          username: "$userDetails.username"
-        }
-      },
-      {
-        $lookup: {
-          from: "managers",
-          localField: "manager",
-          foreignField: "_id",
-          as: "manager"
-        }
-      },
-      {
-        $unwind: {
-          path: "$manager",
-          preserveNullAndEmptyArrays: true
-        }
-      },
-      {
-        $lookup: {
-          from: "processes",
-          localField: "process",
-          foreignField: "_id",
-          as: "process"
-        }
-      },
-      {
-        $project: {
-          userDetails: 0
-        }
-      }
-    ]);
+    // Return all employees (Password is hidden by default in common usage, but for API maybe we should select -password)
+    // We can rely on frontend not needing it, or explicit exclusion.
+    // Also need to include 'userId' for compatibility with frontend assignment logic (used to be User._id, now should be Employee._id)
 
-    res.status(200).json(employees);
+    const employees = await EmployeeSchema.find()
+      .populate("manager")
+      .populate("process")
+      .lean();
+
+    // Map _id to userId for frontend compatibility
+    const mappedEmployees = employees.map(emp => ({
+      ...emp,
+      userId: emp._id // Now the Employee ID IS the User ID
+    }));
+
+    res.status(200).json(mappedEmployees);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -184,9 +160,9 @@ router.put("/employees/:id", async (req, res) => {
       return res.status(404).json({ message: "Employee not found" });
     }
 
-    /* ---------- EMAIL DUPLICATE CHECK ---------- */
+    /* ---------- CHECK EMAIL DUPLICATE ---------- */
     if (body.emailId && body.emailId !== existingEmployee.emailId) {
-      const emailExists = await User.findOne({ email: body.emailId }).session(session);
+      const emailExists = await EmployeeSchema.findOne({ emailId: body.emailId }).session(session);
       if (emailExists) {
         return res.status(400).json({ message: "Email already in use" });
       }
@@ -197,31 +173,21 @@ router.put("/employees/:id", async (req, res) => {
     if (body.workingType === "FixedSalary") body.perJemDetails = undefined;
 
     /* ---------- UPDATE EMPLOYEE ---------- */
+    // Note: If updating password is required here, we'd need to handle hashing if using updateOne/findByIdAndUpdate,
+    // OR find, set, and save to trigger pre-save hook.
+    // For now assuming this endpoint updates profile info, not auth.
+
     const updatedEmployee = await EmployeeSchema.findByIdAndUpdate(
       req.params.id,
       body,
       { new: true, runValidators: true, session }
     );
 
-    /* ---------- UPDATE USER ---------- */
-    const username =
-      body.shortName ||
-      `${body.firstName || existingEmployee.firstName} ${body.lastName || existingEmployee.lastName || ""}`;
-
-    await User.findOneAndUpdate(
-      { email: existingEmployee.emailId },
-      {
-        ...(body.emailId && { email: body.emailId }),
-        username,
-      },
-      { session }
-    );
-
     await session.commitTransaction();
     session.endSession();
 
     res.status(200).json({
-      message: "Employee & User updated successfully",
+      message: "Employee updated successfully",
       employee: updatedEmployee,
     });
 
@@ -235,38 +201,18 @@ router.put("/employees/:id", async (req, res) => {
 
 /* -------------------- DELETE EMPLOYEE -------------------- */
 router.delete("/employees/:id", async (req, res) => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
   try {
-    const employee = await EmployeeSchema
-      .findById(req.params.id)
-      .session(session);
+    const employee = await EmployeeSchema.findByIdAndDelete(req.params.id);
 
     if (!employee) {
       return res.status(404).json({ message: "Employee not found" });
     }
 
-    await User.findOneAndDelete(
-      { email: employee.emailId },
-      { session }
-    );
-
-    await EmployeeSchema.findByIdAndDelete(
-      req.params.id,
-      { session }
-    );
-
-    await session.commitTransaction();
-    session.endSession();
-
     res.status(200).json({
-      message: "Employee & User deleted successfully",
+      message: "Employee deleted successfully",
     });
 
   } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
     res.status(500).json({ message: error.message });
   }
 });

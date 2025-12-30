@@ -1,6 +1,9 @@
-import React, { memo, useMemo } from 'react';
+import React, { memo } from 'react';
+import { useAuth } from '../context/AuthContext';
 
 const Sidebar = memo(({ activeTab, onTabChange }) => {
+  const { logout } = useAuth();
+
   const menuItems = [
     { id: 'purchase', label: 'Purchase' },
     { id: 'master', label: 'Master' },
@@ -31,6 +34,15 @@ const Sidebar = memo(({ activeTab, onTabChange }) => {
           </ul>
         </div>
       </nav>
+      {/* Logout Section */}
+      <div className="p-4 border-t border-gray-700 bg-gray-900">
+        <button
+          onClick={logout}
+          className="w-full flex items-center justify-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+        >
+          Logout
+        </button>
+      </div>
     </div>
   );
 });

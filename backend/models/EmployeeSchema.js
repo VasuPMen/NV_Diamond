@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import bcrypt from "bcryptjs";
 
 const employeeSchema = new mongoose.Schema(
   {
@@ -125,8 +126,18 @@ const employeeSchema = new mongoose.Schema(
         type: String,
       },
     },
+    password: { type: String }, // Optional initially, set to default if empty
+    role: { type: String, default: "employee" },
   },
   { timestamps: true }
 );
+
+// Hash password before saving
+// Hash password before saving
+employeeSchema.pre("save", async function () {
+  if (this.isModified("password")) {
+    this.password = await bcrypt.hash(this.password, 10);
+  }
+});
 
 export default mongoose.model("Employee", employeeSchema);
