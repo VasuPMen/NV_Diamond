@@ -266,8 +266,20 @@ const ProcessPage = () => {
                                             <tr key={idx} className="hover:bg-gray-50">
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{trx.TransactionNo}</td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{typeof trx.Process === 'object' ? trx.Process?.name : trx.Process}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{typeof trx.from === 'object' ? (trx.from?.username || trx.from?.name) : trx.from || '-'}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{typeof trx.to === 'object' ? (trx.to?.username || trx.to?.name) : trx.to || '-'}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    {typeof trx.from === 'object' ? (
+                                                        trx.from?.username ||
+                                                        trx.from?.name ||
+                                                        (trx.from?.firstName ? `${trx.from.firstName} ${trx.from.lastName || ''}` : '-')
+                                                    ) : trx.from || '-'}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    {typeof trx.to === 'object' ? (
+                                                        trx.to?.username ||
+                                                        trx.to?.name ||
+                                                        (trx.to?.firstName ? `${trx.to.firstName} ${trx.to.lastName || ''}` : '-')
+                                                    ) : trx.to || '-'}
+                                                </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date().toLocaleDateString()}</td>
                                             </tr>
                                         ))

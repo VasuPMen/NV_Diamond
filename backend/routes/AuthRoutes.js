@@ -1,5 +1,7 @@
 import express from 'express';
-import User from '../models/UserSchema.js';
+import Admin from '../models/AdminSchema.js';
+import Manager from '../models/ManagerSchema.js';
+import Employee from '../models/EmployeeSchema.js';
 import bcrypt from 'bcryptjs';
 
 const router = express.Router();
@@ -9,40 +11,71 @@ router.post('/login', async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        // Find user
-        const user = await User.findOne({ email });
+        let user = null;
+        let role = null;
+
+        // 1. Check Admin
+        user = await Admin.findOne({ email });
+        if (user) {
+            role = 'admin';
+        } else {
+            // 2. Check Manager
+            user = await Manager.findOne({ emailId: email }); // Note: ManagerSchema uses emailId
+            if (user) {
+                role = 'manager';
+            } else {
+                // 3. Check Employee
+                user = await Employee.findOne({ emailId: email }); // Note: EmployeeSchema uses emailId
+                if (user) role = 'employee';
+            }
+        }
+
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        // Check password (supports both plain text and bcrypt hash)
-        const isMatch = await bcrypt.compare(password, user.password);
-        console.log(`Login Attempt: ${email}`);
-        console.log(`Stored Hash: ${user.password}`);
-        console.log(`Input Password: ${password}`);
-        console.log(`Bcrypt Match: ${isMatch}`);
+        // Handle missing password (Legacy Data Support)
+        if (!user.password) {
+             const defaultPass = role === 'manager' ? 'manager' : (role === 'employee' ? 'employee' : 'admin');
+             
+             if (password === defaultPass) {
+                 // Auto-repair: Hash and save the default password
+                 // Use findByIdAndUpdate to bypass strict schema validation (e.g. missing required fields in legacy data)
+                 const hashedPassword = await bcrypt.hash(defaultPass, 10);
+                 
+                 if (role === 'admin') await Admin.findByIdAndUpdate(user._id, { password: hashedPassword });
+                 else if (role === 'manager') await Manager.findByIdAndUpdate(user._id, { password: hashedPassword });
+                 else if (role === 'employee') await Employee.findByIdAndUpdate(user._id, { password: hashedPassword });
+                 
+                 // Update local user object so login continues
+                 user.password = hashedPassword;
+             } else {
+                 return res.status(400).json({ message: 'Account has no password set. Try default password.' });
+             }
+        }
 
+        // Verify Password
+        const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
-            // Fallback for legacy plain text passwords (optional, remove in prod)
+            // Fallback for plain text (migration support)
             if (user.password !== password) {
-                console.log("Plain text match failed too");
-                return res.status(400).json({
-                    message: 'Invalid credentials',
-                    debug: {
-                        isBcryptMatch: isMatch,
-                        storedStartsWith: user.password ? user.password.substring(0, 10) : "null",
-                        inputLength: password.length
-                    }
-                });
+                return res.status(400).json({ message: 'Invalid credentials' });
             }
         }
 
-        // Return user info (excluding password)
-        const { password: _, ...userInfo } = user.toObject();
+        // Return user info
+        const userData = user.toObject();
+        delete userData.password;
+
+        // Add role explicitly if not present in schema (though we added it)
+        userData.role = role;
+        // Normalize ID for frontend
+        userData._id = user._id;
+        userData.username = user.username || user.firstName; // Fallback for name display
 
         res.status(200).json({
             message: 'Login successful',
-            user: userInfo
+            user: userData
         });
 
     } catch (error) {
@@ -50,34 +83,25 @@ router.post('/login', async (req, res) => {
     }
 });
 
-// Register Route
-router.post('/register', async (req, res) => {
+// Temporary Seed Admin Route
+router.get('/seed-admin', async (req, res) => {
     try {
-        const { username, email, password, role } = req.body;
-
-        // Check availability
-        const existingUser = await User.findOne({ $or: [{ username }, { email }] });
-        if (existingUser) {
-            return res.status(400).json({ message: 'Username or Email already exists' });
+        const adminEmail = "admin@kaka.com";
+        const existingAdmin = await Admin.findOne({ email: adminEmail });
+        if (existingAdmin) {
+            return res.json({ message: "Admin already exists", admin: existingAdmin });
         }
 
-        const newUser = new User({
-            username,
-            email,
-            password, // In production, hash this!
-            role: role || 'employee'
+        const newAdmin = new Admin({
+            username: "Super Admin",
+            email: adminEmail,
+            password: "admin", // Will be hashed by pre-save
+            role: "admin"
         });
-
-        await newUser.save();
-
-        const { password: _, ...userInfo } = newUser.toObject();
-
-        res.status(201).json({
-            message: 'User registered successfully',
-            user: userInfo
-        });
+        await newAdmin.save();
+        res.json({ message: "Admin created successfully", admin: newAdmin });
     } catch (error) {
-        res.status(500).json({ message: 'Registration failed', error: error.message });
+        res.status(500).json({ message: error.message });
     }
 });
 

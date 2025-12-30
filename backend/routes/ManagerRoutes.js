@@ -1,6 +1,6 @@
 import express from "express";
 import ManagerSchema from "../models/ManagerSchema.js";
-import User from "../models/UserSchema.js";
+
 import mongoose from "mongoose";
 
 const router = express.Router();
@@ -36,14 +36,22 @@ router.post("/managers", async (req, res) => {
     mobileNo = mobileNo?.trim();
 
     if (!firstName || !mobileNo || !gender || !emailId) {
-      return res.status(400).json({ message: "Required fields missing" });
+      const missingFields = [];
+      if (!firstName) missingFields.push("First Name");
+      if (!mobileNo) missingFields.push("Mobile No");
+      if (!gender) missingFields.push("Gender");
+      if (!emailId) missingFields.push("Email ID");
+      return res.status(400).json({ message: `Required fields missing: ${missingFields.join(", ")}` });
     }
 
-    /* ---------- CHECK USER DUPLICATE ---------- */
-    const userExists = await User.findOne({ email: emailId }).session(session);
-    if (userExists) {
-      return res.status(400).json({ message: "User already exists" });
+    /* ---------- CHECK EMAIL DUPLICATE ---------- */
+    const existingManager = await ManagerSchema.findOne({ emailId }).session(session);
+    if (existingManager) {
+      return res.status(400).json({ message: "Email already exists" });
     }
+
+    // Default password for new manager
+    const defaultPassword = "manager";
 
     /* ---------- CREATE MANAGER ---------- */
     const manager = new ManagerSchema({
@@ -60,32 +68,32 @@ router.post("/managers", async (req, res) => {
       fixedSalary,
       diamondExperience,
       referenceDetails,
-      department
+      department,
+      password: defaultPassword, // Will be hashed by pre-save hook
+      role: 'manager'
     });
 
     const savedManager = await manager.save({ session });
-
-    /* ---------- CREATE USER ---------- */
-    const user = new User({
-      username: shortName || `${firstName} ${lastName || ""}`,
-      email: emailId,
-      role: "manager"
-    });
-
-    await user.save({ session });
 
     /* ---------- COMMIT ---------- */
     await session.commitTransaction();
     session.endSession();
 
     res.status(201).json({
-      message: "Manager & User created successfully",
+      message: "Manager created successfully",
       manager: savedManager
     });
 
   } catch (error) {
     await session.abortTransaction();
     session.endSession();
+    console.error("Create Manager Error:", error);
+
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      return res.status(400).json({ message: `${field} already exists.` });
+    }
+
     res.status(400).json({ message: error.message });
   }
 });
@@ -93,34 +101,15 @@ router.post("/managers", async (req, res) => {
 /* -------------------- GET ALL MANAGERS -------------------- */
 router.get("/managers", async (req, res) => {
   try {
-    const managers = await ManagerSchema.aggregate([
-      {
-        $lookup: {
-          from: "users",
-          localField: "emailId",
-          foreignField: "email",
-          as: "userDetails"
-        }
-      },
-      {
-        $unwind: {
-          path: "$userDetails",
-          preserveNullAndEmptyArrays: true
-        }
-      },
-      {
-        $addFields: {
-          userId: "$userDetails._id",
-          username: "$userDetails.username"
-        }
-      },
-      {
-        $project: {
-          userDetails: 0
-        }
-      }
-    ]);
-    res.status(200).json(managers);
+    const managers = await ManagerSchema.find().lean();
+
+    // Map _id to userId for frontend compatibility
+    const mappedManagers = managers.map(mgr => ({
+      ...mgr,
+      userId: mgr._id
+    }));
+
+    res.status(200).json(mappedManagers);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -159,7 +148,7 @@ router.put("/managers/:id", async (req, res) => {
       body.emailId &&
       body.emailId !== existingManager.emailId
     ) {
-      const emailExists = await User.findOne({ email: body.emailId }).session(session);
+      const emailExists = await ManagerSchema.findOne({ emailId: body.emailId }).session(session);
       if (emailExists) {
         return res.status(400).json({ message: "Email already in use" });
       }
@@ -172,19 +161,7 @@ router.put("/managers/:id", async (req, res) => {
       { new: true, runValidators: true, session }
     );
 
-    /* ---------- UPDATE USER ---------- */
-    const updatedUsername =
-      body.shortName ||
-      `${body.firstName || existingManager.firstName} ${body.lastName || existingManager.lastName || ""}`;
 
-    await User.findOneAndUpdate(
-      { email: existingManager.emailId }, // find old email
-      {
-        ...(body.emailId && { email: body.emailId }),
-        username: updatedUsername
-      },
-      { session }
-    );
 
     /* ---------- COMMIT ---------- */
     await session.commitTransaction();
@@ -217,12 +194,6 @@ router.delete("/managers/:id", async (req, res) => {
     if (!manager) {
       return res.status(404).json({ message: "Manager not found" });
     }
-
-    /* ---------- DELETE USER ---------- */
-    await User.findOneAndDelete(
-      { email: manager.emailId },
-      { session }
-    );
 
     /* ---------- DELETE MANAGER ---------- */
     await ManagerSchema.findByIdAndDelete(

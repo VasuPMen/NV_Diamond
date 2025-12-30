@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import bcrypt from "bcryptjs";
 
 const managerSchema = new mongoose.Schema(
   {
@@ -79,8 +80,18 @@ const managerSchema = new mongoose.Schema(
         ref: "Department",
       },
     ],
+    password: { type: String }, // Optional initially, set to default if empty
+    role: { type: String, default: "manager" },
   },
   { timestamps: true }
 );
+
+// Hash password before saving
+// Hash password before saving
+managerSchema.pre("save", async function () {
+  if (this.isModified("password")) {
+    this.password = await bcrypt.hash(this.password, 10);
+  }
+});
 
 export default mongoose.model("Manager", managerSchema);
