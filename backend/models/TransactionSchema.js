@@ -6,6 +6,10 @@ const TransactionSchema = new mongoose.Schema({
         required: true,
         unique: true,
     },
+    PacketNo : {
+        type: String,
+        required: true,
+    },
     Process: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Process",
