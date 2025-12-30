@@ -219,3 +219,4 @@ router.delete("/managers/:id", async (req, res) => {
   }
 });
 
+export default router;
