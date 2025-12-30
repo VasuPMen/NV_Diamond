@@ -76,12 +76,7 @@ const packetSchema = new mongoose.Schema({
   },
   currentOwner: {
     type: mongoose.Schema.Types.ObjectId,
-    refPath: "ownerModel",
-  },
-  ownerModel: {
-    type: String,
-    enum: ["Employee", "Manager"],
-    required: true,
+    ref: "Manager",
   },
   pieces: {
     type: Number,

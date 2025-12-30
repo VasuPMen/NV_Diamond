@@ -40,7 +40,6 @@ const purchaseSchema = new mongoose.Schema({
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Packet",
-      required: true,
     },
   ],
   totalWeight: {

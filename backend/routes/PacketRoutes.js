@@ -5,7 +5,16 @@ const router = express.Router();
 
 router.get("/packet", async (req, res) => {
   try {
-    const packets = await PacketSchema.find();
+    const packets = await PacketSchema.find()
+      .populate('shape')
+      .populate('color')
+      .populate('purity')
+      .populate('cut')
+      .populate('polish')
+      .populate('symmetry')
+      .populate('fluorescence')
+      .populate('table')
+      .populate('currentOwner');
     res.status(200).json(packets);
   } catch (error) {
     res.status(500).json({
@@ -18,7 +27,6 @@ router.post("/packet", async (req, res) => {
   try {
     const {
       packetNo,
-      stones,
       purchaseRate,
       estValue,
       rate,
@@ -29,15 +37,18 @@ router.post("/packet", async (req, res) => {
       symmetry,
       polish,
       stockWeight,
+      polishWeight,
       cut,
       purity,
       color,
+      shape,
       pieces,
+      currentOwner,
+      status,
     } = req.body;
 
     if (
       !packetNo ||
-      !stones ||
       !purchaseRate ||
       !estValue ||
       !rate ||
@@ -48,10 +59,11 @@ router.post("/packet", async (req, res) => {
       !symmetry ||
       !polish ||
       !stockWeight ||
+      !polishWeight ||
       !cut ||
       !purity ||
       !color ||
-      !pieces
+      !shape
     ) {
       return res.status(400).json({ message: "Missing required fields" });
     }
@@ -65,7 +77,6 @@ router.post("/packet", async (req, res) => {
 
     const newPacket = new PacketSchema({
       packetNo,
-      stones,
       purchaseRate,
       estValue,
       rate,
@@ -76,10 +87,14 @@ router.post("/packet", async (req, res) => {
       symmetry,
       polish,
       stockWeight,
+      polishWeight,
       cut,
       purity,
       color,
-      pieces,
+      shape,
+      pieces: pieces || 1,
+      currentOwner: currentOwner || undefined,
+      status: status || "hold",
     });
 
     const savedPacket = await newPacket.save();

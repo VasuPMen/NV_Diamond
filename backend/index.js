@@ -19,6 +19,7 @@ import tableRoutes from './routes/TableRoutes.js';
 import tensionRoutes from './routes/TensionRoutes.js';
 import widthRoutes from './routes/WidthRoutes.js';
 import purchaseRoutes from './routes/PurchaseRoutes.js';
+import packetRoutes from './routes/PacketRoutes.js';
 import managerRoutes from './routes/ManagerRoute.js';
 import partyRoutes from './routes/PartyRoutes.js';
 import departmentRoutes from './routes/DepartmentRoutes.js';
@@ -53,6 +54,7 @@ app.use('/master', managerRoutes);
 app.use('/master', partyRoutes);
 app.use('/master', departmentRoutes);
 app.use('/', purchaseRoutes);
+app.use('/', packetRoutes);
 
 // TEST ROUTE
 app.get('/', (req, res) => {

@@ -4,8 +4,23 @@ import ColorSchema from '../models/ColorSchema.js';
 
 router.get("/color", async (req, res) => {
   try {
-    const color = await ColorSchema.find();
-    res.status(200).json(color);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const total = await ColorSchema.countDocuments();
+    const color = await ColorSchema.find()
+      .skip(skip)
+      .limit(limit)
+      .sort({ order: 1 });
+
+    res.status(200).json({
+      data: color,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
