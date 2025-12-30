@@ -23,7 +23,7 @@ import packetRoutes from './routes/PacketRoutes.js';
 import managerRoutes from './routes/ManagerRoutes.js';
 import partyRoutes from './routes/PartyRoutes.js';
 import departmentRoutes from './routes/DepartmentRoutes.js';
-
+import assignRoutes from './routes/AssignRoutes.js';
 import employeeRoutes from './routes/EmployeeRoutes.js';
 import processRoutes from './routes/ProcessRoutes.js';
 
@@ -58,6 +58,7 @@ app.use('/master', partyRoutes);
 app.use('/master', departmentRoutes);
 app.use('/master', employeeRoutes);
 app.use('/master', processRoutes);
+app.use('/assign', assignRoutes);
 app.use('/', purchaseRoutes);
 app.use('/', packetRoutes);
 
