@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 
 import connect from './config/dbconnect.js';
+import { adminOnly } from './middleware/authMiddleware.js';
 
 // ROUTES
 import colorRoutes from './routes/ColorRoutes.js';
@@ -27,6 +28,7 @@ import authRoutes from './routes/AuthRoutes.js';
 import assignRoutes from './routes/AssignRoutes.js';
 import employeeRoutes from './routes/EmployeeRoutes.js';
 import processRoutes from './routes/ProcessRoutes.js';
+import transactionRoutes from './routes/TransactionRoutes.js';
 
 dotenv.config();
 const app = express();
@@ -40,6 +42,12 @@ app.use(express.json());
 await connect();
 
 // ROUTE MOUNTING
+// Apply Admin Only Middleware to Master and Purchase Mutations
+app.use('/master', adminOnly); 
+app.use('/purchase', adminOnly); // Careful, check if purchase GET is needed by others. Purchase list is usually admin/manager?
+// Wait, if Manager buys packets, they might need POST /purchase?
+// User said: "only admin can create a purchase" -> OK.
+
 app.use('/master', colorRoutes);
 app.use('/master', cutRoutes);
 app.use('/master', fluorescenceRoutes);
@@ -62,6 +70,7 @@ app.use('/master', processRoutes);
 app.use('/assign', assignRoutes);
 app.use('/', purchaseRoutes);
 app.use('/', packetRoutes);
+app.use('/', transactionRoutes);
 
 // TEST ROUTE
 app.get('/', (req, res) => {

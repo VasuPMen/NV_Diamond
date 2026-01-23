@@ -8,11 +8,21 @@ import ProcessPage from './components/Process/ProcessPage';
 import { AuthProvider, useAuth } from './context/AuthContext.jsx';
 
 // Protected Route Wrapper
-const ProtectedRoute = ({ children }) => {
+const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, loading } = useAuth();
 
   if (loading) return <div>Loading...</div>;
   if (!user) return <Navigate to="/login" replace />;
+
+  if (allowedRoles && !allowedRoles.includes(user.role)) {
+    // Redirect logic:
+    // If Admin -> Can go anywhere (technically, but if restricted by mistake, go to /purchase)
+    // If Manager/Employee -> Go to /process
+    if (user.role === 'manager' || user.role === 'employee') {
+      return <Navigate to="/process" replace />;
+    }
+    return <Navigate to="/" replace />;
+  }
 
   return children;
 };
@@ -26,9 +36,9 @@ const AppLayout = memo(() => {
   // If on login page, don't show layout details or sidebar
   const isLoginPage = location.pathname === '/login';
 
-  const activeTab = location.pathname.startsWith('/master') ? 'master' 
-                  : location.pathname.startsWith('/process') ? 'process'
-                  : 'purchase';
+  const activeTab = location.pathname.startsWith('/master') ? 'master'
+    : location.pathname.startsWith('/process') ? 'process'
+      : 'purchase';
 
   useEffect(() => {
     if (location.pathname.startsWith('/master')) {
@@ -76,11 +86,11 @@ const AppLayout = memo(() => {
       <main className="flex-1 ml-64 overflow-y-auto">
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route path="/" element={<Navigate to="/purchase" replace />} />
+          <Route path="/" element={<Navigate to="/process" replace />} />
           <Route
             path="/purchase"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['admin']}>
                 <Purchase />
               </ProtectedRoute>
             }
@@ -88,7 +98,7 @@ const AppLayout = memo(() => {
           <Route
             path="/master"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['admin']}>
                 <Master
                   activeSection={activeMasterSection}
                   onSectionChange={handleMasterSectionChange}
@@ -99,7 +109,7 @@ const AppLayout = memo(() => {
           <Route
             path="/master/:sectionKey"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['admin']}>
                 <Master
                   activeSection={activeMasterSection}
                   onSectionChange={handleMasterSectionChange}
@@ -110,12 +120,12 @@ const AppLayout = memo(() => {
           <Route
             path="/process"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['admin', 'manager', 'employee']}>
                 <ProcessPage />
               </ProtectedRoute>
             }
           />
-          <Route path="*" element={<Navigate to="/purchase" replace />} />
+          <Route path="*" element={<Navigate to="/process" replace />} />
         </Routes>
       </main>
     </div>

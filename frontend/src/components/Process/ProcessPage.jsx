@@ -70,9 +70,7 @@ const ProcessPage = () => {
                 setHistory(historyRes.data);
             } catch (histErr) {
                 // It's okay if no history yet
-                console.log("No history found or error:", histErr);
             }
-
         } catch (err) {
             setError(err.response?.data?.message || 'Packet not found or error occurred');
         } finally {

@@ -1,11 +1,31 @@
 import express from "express";
 import PacketSchema from "../models/PacketSchema.js";
+import Manager from "../models/ManagerSchema.js";
+import Employee from "../models/EmployeeSchema.js";
 
 const router = express.Router();
 
 router.get("/packet", async (req, res) => {
   try {
-    const packets = await PacketSchema.find()
+    const { userId, role } = req.query;
+    let query = null; // Default to null (No Access)
+
+    if (role === 'admin') {
+      query = {}; // All packets
+    } else if (role === 'manager' && userId) {
+      const subordinates = await Employee.find({ manager: userId }).distinct('_id');
+      const allowedIds = [userId, ...subordinates];
+      query = { currentOwner: { $in: allowedIds } };
+    } else if (role === 'employee' && userId) {
+      query = { currentOwner: userId };
+    }
+
+    // If query is still null, it means no valid role matched -> Return empty
+    if (!query) {
+      return res.status(200).json([]);
+    }
+
+    const packets = await PacketSchema.find(query)
       .populate('shape')
       .populate('color')
       .populate('purity')
@@ -173,6 +193,9 @@ router.get("/packet/:id", async (req, res) => {
 
 router.get("/packet/no/:packetNo", async (req, res) => {
   try {
+    const { userId, role } = req.query;
+
+    // First fetch the packet
     const packet = await PacketSchema.findOne({ packetNo: req.params.packetNo })
       .populate('shape')
       .populate('color')
@@ -183,9 +206,21 @@ router.get("/packet/no/:packetNo", async (req, res) => {
       .populate('fluorescence')
       .populate('table')
       .populate('currentOwner');
-    if (!packet) {
-      return res.status(404).json({ message: "Packet not found" });
+    // Access Control Check
+    if (role === 'manager' || role === 'employee') {
+      const ownerId = packet.currentOwner ? packet.currentOwner._id.toString() : null;
+
+      let allowedIds = [userId];
+      if (role === 'manager') {
+        const subordinates = await Employee.find({ manager: userId }).distinct('_id');
+        allowedIds = [...allowedIds, ...subordinates.map(id => id.toString())];
+      }
+
+      if (ownerId && !allowedIds.includes(ownerId)) {
+        return res.status(403).json({ message: "Access Denied" });
+      }
     }
+
     res.status(200).json(packet);
   } catch (error) {
     res.status(500).json({

@@ -275,6 +275,7 @@ router.post("/purchase/:id/add-packets", async (req, res) => {
         purchaseRate: purchase.rate || 0,
         ownerModel: "Manager", // Default to Manager
         pieces: 1, // Each packet has 1 piece initially
+        currentOwner: (req.headers['x-user-role'] === 'manager' || req.headers['x-user-role'] === 'employee') ? req.headers['x-user-id'] : undefined,
         status: "hold",
       });
 

@@ -9,6 +9,34 @@ const api = axios.create({
   },
 });
 
+// Add Interceptor to inject Role and User ID into Headers
+api.interceptors.request.use((config) => {
+    try {
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+            const user = JSON.parse(userStr);
+            config.headers['x-user-role'] = user.role;
+            config.headers['x-user-id'] = user._id;
+        }
+    } catch (e) {
+        console.error("Interceptor Error", e);
+    }
+    return config;
+});
+
+const getUserParams = () => {
+    try {
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+            const user = JSON.parse(userStr);
+            return { userId: user._id, role: user.role };
+        }
+    } catch (e) {
+        console.error("Error parsing user from localStorage", e);
+    }
+    return {};
+};
+
 // Purchase APIs
 export const purchaseAPI = {
   getAll: (page = 1, limit = 10) => api.get('/purchase', { params: { page, limit } }),
@@ -20,11 +48,11 @@ export const purchaseAPI = {
 
 // Packet APIs
 export const packetAPI = {
-  getAll: (page = 1, limit = 10) => api.get('/packet', { params: { page, limit } }),
+  getAll: (page = 1, limit = 10) => api.get('/packet', { params: { page, limit, ...getUserParams() } }),
   create: (data) => api.post('/packet', data),
   update: (id, data) => api.put(`/packet/${id}`, data),
   delete: (id) => api.delete(`/packet/${id}`),
-  getByNo: (packetNo) => api.get(`/packet/no/${packetNo}`),
+  getByNo: (packetNo) => api.get(`/packet/no/${packetNo}`, { params: getUserParams() }),
 };
 
 // Master Data APIs
@@ -139,8 +167,7 @@ export const masterAPI = {
 
 export const assignAPI = {
   assignPacket: (data) => api.post('/assign/assign-packet', data),
-  getHistory: (packetNo) => api.get(`/assign/assign/${packetNo}`),
+  getHistory: (packetNo) => api.get(`/assign/assign/${packetNo}`, { params: getUserParams() }),
 };
 
 export default api;
-

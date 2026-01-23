@@ -1,15 +1,14 @@
 import React, { useState, useEffect, useCallback, memo } from 'react';
 import { purchaseAPI, packetAPI } from '../../services/api';
 import PacketList from './PacketList';
-
 const Packet = memo(() => {
   const [purchases, setPurchases] = useState([]);
   const [packets, setPackets] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const fetchPurchases = useCallback(async () => {
-    setLoading(true);
+  const fetchPurchases = useCallback(async (shoLoading = true) => {
+    if (shoLoading) setLoading(true);
     setError('');
     try {
       const response = await purchaseAPI.getAll();
@@ -17,12 +16,12 @@ const Packet = memo(() => {
     } catch (err) {
       setError('Failed to load purchases');
     } finally {
-      setLoading(false);
+      if (shoLoading) setLoading(false);
     }
   }, []);
 
-  const fetchPackets = useCallback(async () => {
-    setLoading(true);
+  const fetchPackets = useCallback(async (shoLoading = true) => {
+    if (shoLoading) setLoading(true);
     setError('');
     try {
       const response = await packetAPI.getAll();
@@ -30,7 +29,7 @@ const Packet = memo(() => {
     } catch (err) {
       setError('Failed to load packets');
     } finally {
-      setLoading(false);
+      if (shoLoading) setLoading(false);
     }
   }, []);
 
@@ -44,8 +43,11 @@ const Packet = memo(() => {
       setLoading(true);
       setError('');
       await purchaseAPI.addPackets(purchaseId);
-      await fetchPackets();
-      await fetchPurchases();
+      // Fetch data without triggering loading state (prevents UI flicker/unmount)
+      await Promise.all([
+        fetchPackets(false),
+        fetchPurchases(false)
+      ]);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to add packets');
     } finally {

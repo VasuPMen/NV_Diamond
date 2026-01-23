@@ -214,7 +214,7 @@ const EmployeeForm = memo(({ employee, onSubmit, onCancel }) => {
         };
       }
 
-      console.log("Submitting Employee Data:", submitData);
+
       await onSubmit(submitData);
     } catch (err) {
       console.error("Employee Submission Error:", err);

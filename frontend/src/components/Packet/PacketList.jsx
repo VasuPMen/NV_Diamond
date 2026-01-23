@@ -51,11 +51,10 @@ const PurchaseItem = memo(({ purchase, onAddPackets, existingPacketsCount }) => 
         <button
           onClick={handleAddPackets}
           disabled={!pieces || pieces <= 0 || loading}
-          className={`px-4 py-2 rounded-lg transition-colors ${
-            !pieces || pieces <= 0 || loading
+          className={`px-4 py-2 rounded-lg transition-colors ${!pieces || pieces <= 0 || loading
               ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
               : 'bg-green-600 text-white hover:bg-green-700'
-          }`}
+            }`}
           title={!pieces || pieces <= 0 ? 'Set pieces number in purchase first' : 'Add Packets'}
         >
           {loading ? 'Creating...' : 'Add Packets'}
@@ -68,14 +67,7 @@ const PurchaseItem = memo(({ purchase, onAddPackets, existingPacketsCount }) => 
 PurchaseItem.displayName = 'PurchaseItem';
 
 const PacketList = memo(({ purchases, packets, onAddPackets }) => {
-  // Count packets per purchase
-  const getPacketsCountForPurchase = useCallback((purchaseId) => {
-    return packets.filter(packet => {
-      // Check if packet is linked to this purchase
-      // We'll need to check the purchase's packets array
-      return false; // For now, we'll calculate from purchases
-    }).length;
-  }, [packets]);
+
 
   // Create a map of purchase ID to packet count
   const purchasePacketCounts = {};
@@ -195,11 +187,10 @@ const PacketList = memo(({ purchases, packets, onAddPackets }) => {
                       {packet.pieces}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      <span className={`px-2 py-1 text-xs rounded-full ${
-                        packet.status === 'active' 
-                          ? 'bg-green-100 text-green-800' 
+                      <span className={`px-2 py-1 text-xs rounded-full ${packet.status === 'active'
+                          ? 'bg-green-100 text-green-800'
                           : 'bg-yellow-100 text-yellow-800'
-                      }`}>
+                        }`}>
                         {packet.status || 'hold'}
                       </span>
                     </td>

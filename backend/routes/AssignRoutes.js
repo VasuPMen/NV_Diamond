@@ -9,13 +9,12 @@ import Employee from "../models/EmployeeSchema.js";
 
 const router = express.Router();
 
-    router.post("/assign-packet", async (req, res) => {
+router.post("/assign-packet", async (req, res) => {
     try {
         const { from, to, PacketNo, Process } = req.body;
-        console.log("Assign Packet Request:", { from, to, PacketNo, Process });
 
         if (!from || !to) {
-             return res.status(400).json({ message: "Missing Sender (from) or Receiver (to) ID" });
+            return res.status(400).json({ message: "Missing Sender (from) or Receiver (to) ID" });
         }
 
         // Helper to determine model based on ID
@@ -24,8 +23,7 @@ const router = express.Router();
             try {
                 // Check if ID is a valid ObjectId before querying to prevent cast errors
                 if (!id.match(/^[0-9a-fA-F]{24}$/)) {
-                     console.log(`Invalid ObjectId format: ${id}`);
-                     return null;
+                    return null;
                 }
 
                 const admin = await Admin.findById(id);
@@ -35,14 +33,13 @@ const router = express.Router();
                 const employee = await Employee.findById(id);
                 if (employee) return 'Employee';
             } catch (e) {
-                console.log("Error in getRole for id", id, e.message);
+                // Silent catch
             }
             return null;
         };
 
         const fromModel = await getRole(from);
         const toModel = await getRole(to);
-        console.log(`Role Resolution: from=${from} -> ${fromModel}, to=${to} -> ${toModel}`);
 
         if (!fromModel) {
             return res.status(400).json({ message: `Invalid Sender ID: ${from}. User not found in Admin, Manager, or Employee.` });
@@ -70,21 +67,58 @@ const router = express.Router();
     }
 });
 
+// Helper to get allowed IDs (Manager + Subordinates) or just User ID
+const getAllowedIds = async (userId, role) => {
+    if (role === 'manager') {
+        const subordinates = await Employee.find({ manager: userId }).distinct('_id');
+        return [userId, ...subordinates.map(id => id.toString())];
+    }
+    return [userId];
+};
+
+import PacketSchema from "../models/PacketSchema.js";
+
 router.get("/assign/:packetNo", async (req, res) => {
-    const assign = await Assign.findOne({ PacketNo: req.params.packetNo }).populate({
-        path: "Transitions",
+    try {
+        const { userId, role } = req.query;
+        // Check Access Control
+        if (role === 'manager' || role === 'employee') {
+            // 1. Find the packet to check current owner
+            const packet = await PacketSchema.findOne({ packetNo: req.params.packetNo });
+            if (!packet) {
+                // Packet doesn't exist, so no history either.
+                return res.status(404).json({ message: "Packet not found" });
+            }
+
+            const allowedIds = await getAllowedIds(userId, role);
+            // 2. Check if current owner is in allowed list
+            // Ensure string comparison
+            const ownerId = packet.currentOwner ? packet.currentOwner.toString() : null;
+
+            if (ownerId && !allowedIds.includes(ownerId)) {
+                // Access Denied
+                return res.status(403).json({ message: "Access Denied: You do not have permission to view this packet's history" });
+            }
+        }
+
+        const assign = await Assign.findOne({ PacketNo: req.params.packetNo }).populate({
+            path: "Transitions",
             // Dynamic refPath population doesn't need explicit model if refPath is correctly set in schema
             // But we need to select fields that exist in all models. 
             // Admin: username, email
             // Manager: firstName, lastName, emailId (Need to ensure we select these)
             // Employee: firstName, lastName, emailId
-        populate: [
-            { path: "from", select: "username email firstName lastName emailId" },
-            { path: "to", select: "username email firstName lastName emailId" },
-            { path: "Process", select: "name" }
-        ]
-    });
-    res.json(assign);
+            populate: [
+                { path: "from", select: "username email firstName lastName emailId" },
+                { path: "to", select: "username email firstName lastName emailId" },
+                { path: "Process", select: "name" }
+            ]
+        });
+        if (!assign) return res.status(404).json({ message: "History not found" });
+        res.json(assign);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
 });
 
 export default router;

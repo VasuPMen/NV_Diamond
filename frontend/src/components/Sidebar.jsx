@@ -2,13 +2,16 @@ import React, { memo } from 'react';
 import { useAuth } from '../context/AuthContext';
 
 const Sidebar = memo(({ activeTab, onTabChange }) => {
-  const { logout } = useAuth();
+  const { user, logout } = useAuth(); // Destructure user
 
   const menuItems = [
-    { id: 'purchase', label: 'Purchase' },
-    { id: 'master', label: 'Master' },
-    { id: 'process', label: 'Process' },
-  ];
+    { id: 'purchase', label: 'Purchase', roles: ['admin'] },
+    { id: 'master', label: 'Master', roles: ['admin'] },
+    { id: 'process', label: 'Process', roles: ['admin', 'manager', 'employee'] },
+    // Packets is usually part of Purchase or Process? 
+    // Wait, Sidebar listed "Purchase", "Master", "Process".
+    // User wants "Manager have only access of process of his packet".
+  ].filter(item => item.roles.includes(user?.role));
 
   return (
     <div className="w-64 bg-gray-800 text-white h-screen fixed left-0 top-0 flex flex-col shadow-lg">
